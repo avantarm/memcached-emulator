@@ -12,7 +12,7 @@
   ],
   "time": "2018-01-25",
   "license": "MIT",
-  "homepage": "https://www.avantarm.com",
+  "homepage": "https://github.com/avantarm/memcached-emulator",
   "support": {
     "issues": "https://github.com/avantarm/memcached-emulator/issues",
     "source": "https://github.com/avantarm/memcached-emulator"
