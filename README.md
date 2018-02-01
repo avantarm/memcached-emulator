@@ -1,5 +1,9 @@
 # Memcached emulator
 
+[![Latest Stable Version](https://poser.pugx.org/avantarm/memcached-emulator/v/stable)](https://packagist.org/packages/avantarm/memcached-emulator)
+[![Total Downloads](https://poser.pugx.org/avantarm/memcached-emulator/downloads)](https://packagist.org/packages/avantarm/memcached-emulator)
+[![Latest Unstable Version](https://poser.pugx.org/avantarm/memcached-emulator/v/unstable)](https://packagist.org/packages/avantarm/memcached-emulator)
+[![License](https://poser.pugx.org/avantarm/memcached-emulator/license)](https://packagist.org/packages/avantarm/memcached-emulator)
 
 Memcached PHP extension emulator for Windows environment. 
 
