@@ -1,0 +1,7 @@
+# IDE
+.idea
+
+# Misc
+vendor/
+composer.lock
+phpunit.xml
