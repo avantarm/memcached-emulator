@@ -32,8 +32,10 @@
   "autoload": {
     "psr-0": {
       "Memcached": "src/",
-      "MemcachedEmulator": "src/",
       "MemcachedException": "src/"
+    },
+    "psr-4": {
+      "Avantarm\\MemcachedEmulator\\": "src/"
     }
   },
   "minimum-stability": "dev",

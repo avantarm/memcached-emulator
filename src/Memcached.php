@@ -1,5 +1,7 @@
 <?php
 
+use Avantarm\MemcachedEmulator\MemcachedEmulator;
+
 /**
  * Memcached emulating class.
  */

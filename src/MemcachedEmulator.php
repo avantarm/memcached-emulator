@@ -1,7 +1,9 @@
 <?php
 
+namespace Avantarm\MemcachedEmulator;
+
 /**
- * Memcached emulator class.
+ * Memcached emulator class, Memcached 3.0.4 compatible.
  */
 class MemcachedEmulator
 {
@@ -11,189 +13,312 @@ class MemcachedEmulator
      * @see http://php.net/manual/en/memcached.constants.php
      */
 
-    const LIBMEMCACHED_VERSION_HEX = 16777240;
-    const OPT_COMPRESSION = -1001;
-    const OPT_COMPRESSION_TYPE = -1004;
-    const OPT_PREFIX_KEY = -1002;
-    const OPT_SERIALIZER = -1003;
-    const OPT_STORE_RETRY_COUNT = -1005;
-
-    const HAVE_IGBINARY = 0;
-    const HAVE_JSON = 0;
-    const HAVE_MSGPACK = 0;
-    const HAVE_SESSION = 1;
-    const HAVE_SASL = 1;
-
-    const OPT_HASH = 2;
-    const HASH_DEFAULT = 0;
-    const HASH_MD5 = 1;
-    const HASH_CRC = 2;
-    const HASH_FNV1_64 = 3;
+    /**
+     * Libmemcached behavior options.
+     */
+    const OPT_HASH      = 2;
+    const HASH_DEFAULT  = 0;
+    const HASH_MD5      = 1;
+    const HASH_CRC      = 2;
+    const HASH_FNV1_64  = 3;
     const HASH_FNV1A_64 = 4;
-    const HASH_FNV1_32 = 5;
+    const HASH_FNV1_32  = 5;
     const HASH_FNV1A_32 = 6;
-    const HASH_HSIEH = 7;
-    const HASH_MURMUR = 8;
+    const HASH_HSIEH    = 7;
+    const HASH_MURMUR   = 8;
 
-    const OPT_DISTRIBUTION = 9;
-    const DISTRIBUTION_MODULA = 0;
-    const DISTRIBUTION_CONSISTENT = 1;
+    const OPT_DISTRIBUTION            = 9;
+    const DISTRIBUTION_MODULA         = 0;
+    const DISTRIBUTION_CONSISTENT     = 1;
     const DISTRIBUTION_VIRTUAL_BUCKET = 6;
 
-    const OPT_LIBKETAMA_COMPATIBLE = 16;
-    const OPT_LIBKETAMA_HASH = 17;
-    const OPT_TCP_KEEPALIVE = 32;
-    const OPT_BUFFER_WRITES = 10;
-    const OPT_BINARY_PROTOCOL = 18;
-    const OPT_NO_BLOCK = 0;
-    const OPT_TCP_NODELAY = 1;
-    const OPT_SOCKET_SEND_SIZE = 4;
-    const OPT_SOCKET_RECV_SIZE = 5;
-    const OPT_CONNECT_TIMEOUT = 14;
-    const OPT_RETRY_TIMEOUT = 15;
-    const OPT_DEAD_TIMEOUT = 36;
-    const OPT_SEND_TIMEOUT = 19;
-    const OPT_RECV_TIMEOUT = 20;
-    const OPT_POLL_TIMEOUT = 8;
-    const OPT_CACHE_LOOKUPS = 6;
-    const OPT_SERVER_FAILURE_LIMIT = 21;
-    const OPT_AUTO_EJECT_HOSTS = 28;
-    const OPT_HASH_WITH_PREFIX_KEY = 25;
-    const OPT_NOREPLY = 26;
-    const OPT_SORT_HOSTS = 12;
-    const OPT_VERIFY_KEY = 13;
-    const OPT_USE_UDP = 27;
-    const OPT_NUMBER_OF_REPLICAS = 29;
+    const OPT_LIBKETAMA_COMPATIBLE   = 16;
+    const OPT_LIBKETAMA_HASH         = 17;
+    const OPT_TCP_KEEPALIVE          = 32;
+    const OPT_BUFFER_WRITES          = 10;
+    const OPT_BINARY_PROTOCOL        = 18;
+    const OPT_NO_BLOCK               = 0;
+    const OPT_TCP_NODELAY            = 1;
+    const OPT_SOCKET_SEND_SIZE       = 4;
+    const OPT_SOCKET_RECV_SIZE       = 5;
+    const OPT_CONNECT_TIMEOUT        = 14;
+    const OPT_RETRY_TIMEOUT          = 15;
+    const OPT_DEAD_TIMEOUT           = 36;
+    const OPT_SEND_TIMEOUT           = 19;
+    const OPT_RECV_TIMEOUT           = 20;
+    const OPT_POLL_TIMEOUT           = 8;
+    const OPT_SERVER_FAILURE_LIMIT   = 21;
+    const OPT_SERVER_TIMEOUT_LIMIT   = 37;
+    const OPT_CACHE_LOOKUPS          = 6;
+    const OPT_AUTO_EJECT_HOSTS       = 28;
+    const OPT_HASH_WITH_PREFIX_KEY   = 25;
+    const OPT_NOREPLY                = 26;
+    const OPT_SORT_HOSTS             = 12;
+    const OPT_VERIFY_KEY             = 13;
+    const OPT_USE_UDP                = 27;
+    const OPT_NUMBER_OF_REPLICAS     = 29;
     const OPT_RANDOMIZE_REPLICA_READ = 30;
-    const OPT_REMOVE_FAILED_SERVERS = 35;
-    const OPT_SERVER_TIMEOUT_LIMIT = 37;
+    const OPT_REMOVE_FAILED_SERVERS  = 35;
 
-    const RES_SUCCESS = 0;
-    const RES_FAILURE = 1;
-    const RES_HOST_LOOKUP_FAILURE = 2;
-    const RES_UNKNOWN_READ_FAILURE = 7;
-    const RES_PROTOCOL_ERROR = 8;
-    const RES_CLIENT_ERROR = 9;
-    const RES_SERVER_ERROR = 10;
-    const RES_WRITE_FAILURE = 5;
-    const RES_DATA_EXISTS = 12;
-    const RES_NOTSTORED = 14;
-    const RES_NOTFOUND = 16;
-    const RES_PARTIAL_READ = 18;
-    const RES_SOME_ERRORS = 19;
-    const RES_NO_SERVERS = 20;
-    const RES_END = 21;
-    const RES_ERRNO = 26;
-    const RES_BUFFERED = 32;
-    const RES_TIMEOUT = 31;
-    const RES_BAD_KEY_PROVIDED = 33;
-    const RES_STORED = 15;
-    const RES_DELETED = 22;
-    const RES_STAT = 24;
-    const RES_ITEM = 25;
-    const RES_NOT_SUPPORTED = 28;
-    const RES_FETCH_NOTFINISHED = 30;
-    const RES_SERVER_MARKED_DEAD = 35;
-    const RES_UNKNOWN_STAT_KEY = 36;
-    const RES_INVALID_HOST_PROTOCOL = 34;
-    const RES_MEMORY_ALLOCATION_FAILURE = 17;
-    const RES_CONNECTION_SOCKET_CREATE_FAILURE = 11;
-    const RES_E2BIG = 37;
-    const RES_KEY_TOO_BIG = 39;
-    const RES_SERVER_TEMPORARILY_DISABLED = 47;
-    const RES_SERVER_MEMORY_ALLOCATION_FAILURE = 48;
-    const RES_AUTH_PROBLEM = 40;
-    const RES_AUTH_FAILURE = 41;
-    const RES_AUTH_CONTINUE = 42;
-    const RES_PAYLOAD_FAILURE = -1001;
+    const LIBMEMCACHED_VERSION_HEX = 16777240;
+    const OPT_SERIALIZER           = -1003;
+    const OPT_STORE_RETRY_COUNT    = -1005;
 
-    const SERIALIZER_PHP = 1;
-    const SERIALIZER_IGBINARY = 2;
-    const SERIALIZER_JSON = 3;
+    /**
+     * Supported serializers
+     */
+    const HAVE_IGBINARY = 0;
+    const HAVE_JSON     = 0;
+    const HAVE_MSGPACK  = 0;
+
+    /**
+     * Feature support
+     */
+    const HAVE_SESSION = 1;
+    const HAVE_SASL    = 1;
+
+    /**
+     * Class options.
+     */
+    const OPT_COMPRESSION      = -1001;
+    const OPT_COMPRESSION_TYPE = -1004;
+    const OPT_PREFIX_KEY       = -1002;
+
+    /**
+     * Serializer constants
+     */
+    const SERIALIZER_PHP        = 1;
+    const SERIALIZER_IGBINARY   = 2;
+    const SERIALIZER_JSON       = 3;
     const SERIALIZER_JSON_ARRAY = 4;
-    const SERIALIZER_MSGPACK = 5;
+    const SERIALIZER_MSGPACK    = 5;
 
+    /**
+     * Compression types
+     */
+    const COMPRESSION_ZLIB   = 1;
     const COMPRESSION_FASTLZ = 2;
-    const COMPRESSION_ZLIB = 1;
 
+    /**
+     * Flags for get and getMulti operations.
+     */
     const GET_PRESERVE_ORDER = 1;
-    const GET_ERROR_RETURN_VALUE = false;
+    const GET_EXTENDED       = 2;
 
-    /** @var array Dummy option array */
-    protected $options =
-        [
-            self::OPT_COMPRESSION          => true,
-            self::OPT_SERIALIZER           => self::SERIALIZER_PHP,
-            self::OPT_PREFIX_KEY           => '',
-            self::OPT_HASH                 => self::HASH_DEFAULT,
-            self::OPT_DISTRIBUTION         => self::DISTRIBUTION_MODULA,
-            self::OPT_LIBKETAMA_COMPATIBLE => false,
-            self::OPT_BUFFER_WRITES        => false,
-            self::OPT_BINARY_PROTOCOL      => false,
-            self::OPT_NO_BLOCK             => false,
-            self::OPT_TCP_NODELAY          => false,
+    /**
+     * Return values
+     */
+    const GET_ERROR_RETURN_VALUE               = false;
+    const RES_PAYLOAD_FAILURE                  = -1001;
+    const RES_SUCCESS                          = 0;
+    const RES_FAILURE                          = 1;
+    const RES_HOST_LOOKUP_FAILURE              = 2;
+    const RES_UNKNOWN_READ_FAILURE             = 7;
+    const RES_PROTOCOL_ERROR                   = 8;
+    const RES_CLIENT_ERROR                     = 9;
+    const RES_SERVER_ERROR                     = 10;
+    const RES_WRITE_FAILURE                    = 5;
+    const RES_DATA_EXISTS                      = 12;
+    const RES_NOTSTORED                        = 14;
+    const RES_NOTFOUND                         = 16;
+    const RES_PARTIAL_READ                     = 18;
+    const RES_SOME_ERRORS                      = 19;
+    const RES_NO_SERVERS                       = 20;
+    const RES_END                              = 21;
+    const RES_ERRNO                            = 26;
+    const RES_BUFFERED                         = 32;
+    const RES_TIMEOUT                          = 31;
+    const RES_BAD_KEY_PROVIDED                 = 33;
+    const RES_STORED                           = 15;
+    const RES_DELETED                          = 22;
+    const RES_STAT                             = 24;
+    const RES_ITEM                             = 25;
+    const RES_NOT_SUPPORTED                    = 28;
+    const RES_FETCH_NOTFINISHED                = 30;
+    const RES_SERVER_MARKED_DEAD               = 35;
+    const RES_UNKNOWN_STAT_KEY                 = 36;
+    const RES_INVALID_HOST_PROTOCOL            = 34;
+    const RES_MEMORY_ALLOCATION_FAILURE        = 17;
+    const RES_CONNECTION_SOCKET_CREATE_FAILURE = 11;
+    const RES_E2BIG                            = 37;
+    const RES_INVALID_ARGUMENTS                = 38; // Emulated, doesn't exist in real Memcached.
+    const RES_KEY_TOO_BIG                      = 39;
+    const RES_SERVER_TEMPORARILY_DISABLED      = 47;
+    const RES_SERVER_MEMORY_ALLOCATION_FAILURE = 48;
+    const RES_AUTH_PROBLEM                     = 40;
+    const RES_AUTH_FAILURE                     = 41;
+    const RES_AUTH_CONTINUE                    = 42;
 
-            // This two is a value by guess
-            self::OPT_SOCKET_SEND_SIZE     => 32767,
-            self::OPT_SOCKET_RECV_SIZE     => 65535,
+    /**
+     * Flags for PHP variables types.
+     */
+    const MEMC_VAL_IS_STRING     = 0;
+    const MEMC_VAL_IS_LONG       = 1;
+    const MEMC_VAL_IS_DOUBLE     = 2;
+    const MEMC_VAL_IS_BOOL       = 3;
+    const MEMC_VAL_IS_SERIALIZED = 4;
+    const MEMC_VAL_IS_IGBINARY   = 5;
+    const MEMC_VAL_IS_JSON       = 6;
+    const MEMC_VAL_IS_MSGPACK    = 7;
 
-            self::OPT_CONNECT_TIMEOUT      => 1000,
-            self::OPT_RETRY_TIMEOUT        => 0,
-            self::OPT_SEND_TIMEOUT         => 0,
-            self::OPT_RECV_TIMEOUT         => 0,
-            self::OPT_POLL_TIMEOUT         => 1000,
-            self::OPT_CACHE_LOOKUPS        => false,
-            self::OPT_SERVER_FAILURE_LIMIT => 0,
-        ];
+    const MEMC_VAL_COMPRESSED         = 0x1; // (1 << 0);
+    const MEMC_VAL_COMPRESSION_ZLIB   = 0x2; // (1 << 1);
+    const MEMC_VAL_COMPRESSION_FASTLZ = 0x4; // (1 << 2);
+
+    const MEMC_MASK_TYPE     = 0xf; // MEMC_CREATE_MASK(0, 4)
+    const MEMC_MASK_INTERNAL = 0xfff0; // MEMC_CREATE_MASK(4, 12)
+    const MEMC_MASK_USER     = 0xffff0000; // MEMC_CREATE_MASK(16, 16)
+
+    /**
+     * Response options.
+     */
+    const RESPONSE_VALUE      = 'VALUE';
+    const RESPONSE_STAT       = 'STAT';
+    const RESPONSE_ITEM       = 'ITEM';
+    const RESPONSE_END        = 'END';
+    const RESPONSE_DELETED    = 'DELETED';
+    const RESPONSE_NOT_FOUND  = 'NOT_FOUND';
+    const RESPONSE_OK         = 'OK';
+    const RESPONSE_EXISTS     = 'EXISTS';
+    const RESPONSE_ERROR      = 'ERROR';
+    const RESPONSE_RESET      = 'RESET';
+    const RESPONSE_STORED     = 'STORED';
+    const RESPONSE_NOT_STORED = 'NOT_STORED';
+    const RESPONSE_TOUCHED    = 'TOUCHED';
+    const RESPONSE_VERSION    = 'VERSION';
+
+    const RESPONSE_CLIENT_ERROR = 'CLIENT_ERROR';
+    const RESPONSE_SERVER_ERROR = 'SERVER_ERROR';
+
+    /**
+     * Transfer end signals.
+     */
+    const END_SIGNALS = [
+        self::RESPONSE_OK,
+        self::RESPONSE_STORED,
+        self::RESPONSE_NOT_FOUND,
+        self::RESPONSE_END,
+        self::RESPONSE_DELETED,
+        self::RESPONSE_EXISTS,
+        self::RESPONSE_ERROR,
+        self::RESPONSE_RESET,
+        self::RESPONSE_NOT_STORED,
+        self::RESPONSE_VERSION,
+    ];
+
+    const STORE_RESPONSES = [
+        self::RESPONSE_STORED     => self::RES_SUCCESS,
+        self::RESPONSE_NOT_STORED => self::RES_NOTSTORED,
+        self::RESPONSE_EXISTS     => self::RES_DATA_EXISTS,
+        self::RESPONSE_NOT_FOUND  => self::RES_NOTFOUND,
+    ];
+
+    const RETRIEVE_RESPONSES = [
+        self::RESPONSE_END => self::RES_NOTFOUND,
+    ];
+
+    const DELETE_RESPONSES = [
+        self::RESPONSE_DELETED   => self::RES_SUCCESS,
+        self::RESPONSE_NOT_FOUND => self::RES_NOTFOUND,
+    ];
+
+    const INCR_DECR_RESPONSES = [
+        self::RESPONSE_NOT_FOUND,
+    ];
+
+    const TOUCH_RESPONSES = [
+        self::RESPONSE_TOUCHED   => self::RES_SUCCESS,
+        self::RESPONSE_NOT_FOUND => self::RES_NOTFOUND,
+    ];
 
     /**
      * Unique instance ID.
      *
      * @var string
      */
-    protected $_persistent_id;
+    protected $persistent_id;
+
+    /**
+     * Pristine status.
+     *
+     * @var bool
+     * @see isPristine()
+     */
+    protected $is_pristine;
 
     /**
      * Last result code.
      *
      * @var int
      */
-    protected $_result_code = self::RES_SUCCESS;
+    protected $result_code = self::RES_SUCCESS;
 
     /**
      * Last result message.
      *
      * @var string
      */
-    protected $_result_message = '';
+    protected $result_message = '';
 
     /**
      * Servers list array.
      *
      * @var array
      */
-    protected $_servers = [];
-
-    /**
-     * Socket connection handle.
-     *
-     * @var resource
-     */
-    protected $_socket;
+    protected $servers = [];
 
     /**
      * The key of currently used server.
      *
      * @var string
      */
-    protected $_current_server_key;
+    protected $current_server_key;
 
     /**
      * Socket connection handles per server key.
      *
      * @var resource[]
      */
-    protected $_sockets = [];
+    protected $sockets = [];
+
+    /**
+     * Options.
+     *
+     * @var array
+     */
+    protected $options = [];
+
+    /**
+     * @var string
+     */
+    protected $options_id;
+
+    /** @var array Dummy option array */
+    protected static $default_options = [
+        self::OPT_COMPRESSION          => false,
+        self::OPT_COMPRESSION_TYPE     => 'fastlz',
+        self::OPT_SERIALIZER           => self::SERIALIZER_PHP,
+        self::OPT_PREFIX_KEY           => '',
+        self::OPT_HASH                 => self::HASH_DEFAULT,
+        self::OPT_DISTRIBUTION         => self::DISTRIBUTION_MODULA,
+        self::OPT_LIBKETAMA_COMPATIBLE => false,
+        self::OPT_BUFFER_WRITES        => false,
+        self::OPT_BINARY_PROTOCOL      => false,
+        self::OPT_NO_BLOCK             => false,
+        self::OPT_TCP_NODELAY          => false,
+
+        // This two is a value by guess
+        self::OPT_SOCKET_SEND_SIZE     => 32767,
+        self::OPT_SOCKET_RECV_SIZE     => 65535,
+
+        self::OPT_CONNECT_TIMEOUT      => 1000,
+        self::OPT_RETRY_TIMEOUT        => 0,
+        self::OPT_SEND_TIMEOUT         => 0,
+        self::OPT_RECV_TIMEOUT         => 0,
+        self::OPT_POLL_TIMEOUT         => 1000,
+        self::OPT_CACHE_LOOKUPS        => false,
+        self::OPT_SERVER_FAILURE_LIMIT => 0,
+    ];
 
     /**
      * (PECL memcached &gt;= 0.1.0)<br/>
@@ -204,7 +329,37 @@ class MemcachedEmulator
      */
     public function __construct($persistent_id = null)
     {
-        $this->_persistent_id = $persistent_id;
+        // Store persistent_id.
+        $this->persistent_id = $persistent_id;
+
+        // Set pristine status: no persistent_id or persistent_id is firstly created.
+        $this->is_pristine = $persistent_id === null || !isset($this->options[$persistent_id]);
+
+        // Init options.
+        $this->_initOptions();
+    }
+
+    /**
+     * @return void
+     */
+    protected function _initOptions()
+    {
+        $this->options_id = $this->persistent_id ?? \spl_object_hash($this);
+
+        if (!isset($this->options[$this->options_id])) {
+            $this->options[$this->options_id] = static::$default_options;
+
+            // Apply default INI options.
+            if ('' === $serializer = ini_get('memcached.serializer')) {
+                $serializer = \function_exists('igbinary_serialize') ? self::SERIALIZER_IGBINARY : self::SERIALIZER_PHP;
+            }
+            $this->setOption(self::OPT_SERIALIZER, $serializer);
+
+            if ('' === $compression_type = ini_get('memcached.compression_type')) {
+                $compression_type = 'fastlz';
+            }
+            $this->setOption(self::OPT_COMPRESSION_TYPE, $compression_type);
+        }
     }
 
     /**
@@ -240,29 +395,26 @@ class MemcachedEmulator
     public function addByKey($server_key, $key, $value, $expiration = 0)
     {
         $key = $this->_getKey($key);
-        $value = $this->_serialize($value);
         $expiration = (int)$expiration;
 
-        if ($this->_writeSocket($server_key, "add $key 0 $expiration " . \strlen($value))) {
-            if ('STORED' === $result = $this->_writeSocket($server_key, $value, true)) {
-                $this->_result_code = self::RES_SUCCESS;
-                $this->_result_message = '';
-
-                return true;
-            }
-
-            if ($result === 'NOT_STORED') {
-                $this->_result_code = self::RES_NOTSTORED;
-                $this->_result_message = 'Add failed, key already exists.';
-
-                return true;
-            }
+        if (!$this->_serialize($value, $flags, $bytes)) {
+            return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
-        $this->_result_code = self::RES_FAILURE;
-        $this->_result_message = 'Add failed.';
+        // add <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
+        if (false !== $response = $this->_write($server_key, "add $key $flags $expiration $bytes\r\n$value")) {
+            // Valid response.
+            if (isset(self::STORE_RESPONSES[$response])) {
+                $this->result_code = self::STORE_RESPONSES[$response];
+                $this->result_message = '';
 
-        return false;
+                return $this->result_code === self::RES_SUCCESS;
+            }
+
+            $this->_checkInvalidResponse($server_key, 'add', $response);
+        }
+
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
@@ -287,21 +439,18 @@ class MemcachedEmulator
         // Create native server key.
         $key = $host . ':' . $port;
 
-        if (isset($this->_servers[$key])) {
-            $this->_result_code = self::RES_FAILURE;
-            $this->_result_message = 'Server already exists.';
+        if (isset($this->servers[$key])) {
+            $this->result_code = self::RES_FAILURE;
+            $this->result_message = 'Server already exists.';
 
             return false;
         }
 
-        $this->_servers[$key] = [
+        $this->servers[$key] = [
             'host'   => $host,
             'port'   => $port,
             'weight' => $weight,
         ];
-
-        // todo - no errors are displayed if we add invalid server details.
-        // it's correct in native Memcached, but maybe we can be more informative.
 
         return true;
     }
@@ -317,7 +466,7 @@ class MemcachedEmulator
     public function addServers(array $servers)
     {
         foreach ($servers as $server) {
-            if (count($server) !== 3) {
+            if (\count($server) !== 3) {
                 return false;
             }
 
@@ -362,29 +511,29 @@ class MemcachedEmulator
      */
     public function appendByKey($server_key, $key, $value)
     {
-        // Append does not take <flags> or <exptime> parameters but you must provide them !
-        // Doesn't work with enabled compression.
+        $key = $this->_getKey($key);
 
-        $key_string = $this->_getKey($key);
-
-        if ($this->_writeSocket($server_key, "append $key_string 0 0 " . \strlen($value))) {
-            if ($this->_writeSocket($server_key, $value, true) === 'STORED') {
-                $this->_result_code = self::RES_SUCCESS;
-                $this->_result_message = '';
-
-                return true;
-            }
-
-            $this->_result_code = self::RES_NOTSTORED;
-            $this->_result_message = 'NOT STORED';
-
-            return false;
+        if (!is_scalar($value)) {
+            return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
-        $this->_result_code = self::RES_FAILURE;
-        $this->_result_message = 'Append failed.';
+        $bytes = \strlen($value);
 
-        return false;
+        // append <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
+        // flags and exptime are ignored.
+        if (false !== $response = $this->_write($server_key, "append $key 0 0 $bytes\r\n$value")) {
+            // Valid response.
+            if (isset(self::STORE_RESPONSES[$response])) {
+                $this->result_code = self::STORE_RESPONSES[$response];
+                $this->result_message = '';
+
+                return $this->result_code === self::RES_SUCCESS;
+            }
+
+            $this->_checkInvalidResponse($server_key, 'append', $response);
+        }
+
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
@@ -423,29 +572,28 @@ class MemcachedEmulator
      */
     public function casByKey($cas_token, $server_key, $key, $value, $expiration = 0)
     {
-        $key_string = $this->_getKey($key);
-        $value_string = $this->_serialize($value);
+        $key = $this->_getKey($key);
         $expiration = (int)$expiration;
 
-        if ($this->_writeSocket($server_key,
-            "cas $key_string 0 $expiration " . \strlen($value_string) . ' ' . \addslashes($cas_token))) {
-            if ($this->_writeSocket($server_key, $value_string, true) === 'STORED') {
-                $this->_result_code = self::RES_SUCCESS;
-                $this->_result_message = '';
-
-                return true;
-            }
-
-            $this->_result_code = self::RES_NOTSTORED;
-            $this->_result_message = 'Cas failed.';
-
-            return false;
+        if (!$this->_serialize($value, $flags, $bytes)) {
+            return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
-        $this->_result_code = self::RES_FAILURE;
-        $this->_result_message = 'Cas failed.';
+        // cas <key> <flags> <exptime> <bytes> <cas unique> [noreply]\r\n
+        if (false !== $response = $this->_write($server_key,
+                "cas $key $flags $expiration $bytes $cas_token\r\n$value")) {
+            // Valid response.
+            if (isset(self::STORE_RESPONSES[$response])) {
+                $this->result_code = self::STORE_RESPONSES[$response];
+                $this->result_message = '';
 
-        return false;
+                return $this->result_code === self::RES_SUCCESS;
+            }
+
+            $this->_checkInvalidResponse($server_key, 'cas', $response);
+        }
+
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
@@ -479,17 +627,37 @@ class MemcachedEmulator
      */
     public function decrementByKey($server_key, $key, $offset = 1, $initial_value = 0, $expiry = 0)
     {
-        // todo - switch to native socket operation.
-        if (false === $value = $this->getByKey($server_key, $key)) {
-            $value = $initial_value;
+        $real_key = $this->_getKey($key);
+        $expiry = (int)$expiry;
+
+        if (!is_scalar($offset)) {
+            return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
-        $value -= $offset;
+        // decr <key> <value> [noreply]\r\n
+        if (false !== $response = $this->_write($server_key, "decr $real_key $offset")) {
+            // Not found? Use initial value.
+            if ($response === self::RESPONSE_NOT_FOUND) {
+                // If the operation would decrease the value below 0, the new value will be 0.
+                $value = \max(0, $initial_value - $offset);
+                return $this->setByKey($server_key, $key, $initial_value, $expiry) ? $value : false;
+            }
 
-        // If the operation would decrease the value below 0, the new value will be 0.
-        $value = \max(0, $value);
+            // Another invalid response.
+            if (isset(self::STORE_RESPONSES[$response])) {
 
-        return $this->setByKey($server_key, $key, $value, $expiry) ?: false;
+                // Another response
+                $this->result_code = self::STORE_RESPONSES[$response];
+                $this->result_message = '';
+
+                return false;
+            }
+
+            // Check possible invalid response.
+            $this->_checkInvalidResponse($server_key, 'decr', $response);
+        }
+
+        return (int)$response;
     }
 
     /**
@@ -524,22 +692,23 @@ class MemcachedEmulator
     {
         if ($time !== 0) {
             /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-            throw new BadMethodCallException(sprintf('%s does not emulate $time param.', __METHOD__));
+            throw new \BadMethodCallException(sprintf('%s does not emulate $time param.', __METHOD__));
         }
 
-        $key_string = $this->_getKey($key);
+        // delete <key> [<time>] [noreply]\r\n
+        if (false !== $response = $this->_write($server_key, "delete $key")) {
+            // Valid response.
+            if (isset(self::DELETE_RESPONSES[$response])) {
+                $this->result_code = self::DELETE_RESPONSES[$response];
+                $this->result_message = '';
 
-        if ($this->_writeSocket($server_key, "delete $key_string", true) === 'DELETED') {
-            $this->_result_code = self::RES_SUCCESS;
-            $this->_result_message = '';
+                return $this->result_code === self::RES_SUCCESS;
+            }
 
-            return true;
+            $this->_checkInvalidResponse($server_key, 'delete', $response);
         }
 
-        $this->_result_code = self::RES_NOTFOUND;
-        $this->_result_message = 'NOT FOUND';
-
-        return false;
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
@@ -549,7 +718,7 @@ class MemcachedEmulator
      * @link http://php.net/manual/en/memcached.deletemulti.php
      * @param array $keys <p>The keys to be deleted.</p>
      * @param int   $time [optional] <p>The amount of time the server will wait to delete the items.</p>
-     * @return bool|array <b>TRUE</b> on success or <b>FALSE</b> on failure.
+     * @return array Returns array indexed by keys and where values are indicating whether operation succeeded or not.
      *                    The <b>Memcached::getResultCode</b> will return
      *                    <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
      */
@@ -567,40 +736,32 @@ class MemcachedEmulator
      * @param string $server_key <p>The key identifying the server to store the value on or retrieve it from.</p>
      * @param array  $keys       <p>The keys to be deleted.</p>
      * @param int    $time       [optional] <p>The amount of time the server will wait to delete the items.</p>
-     * @return bool|array <b>TRUE</b> on success or <b>FALSE</b> on failure.
+     * @return array Returns array indexed by keys and where values are indicating whether operation succeeded or not.
      *                           The <b>Memcached::getResultCode</b> will return
      *                           <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
      */
     public function deleteMultiByKey($server_key, array $keys, $time = 0)
     {
+        if ($time !== 0) {
+            /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+            throw new \BadMethodCallException(sprintf('%s does not emulate $time param.', __METHOD__));
+        }
+
         // Set initial result.
-        $this->_result_code = self::RES_SUCCESS;
-        $this->_result_message = 'SUCCESS';
+        $this->result_code = self::RES_SUCCESS;
+        $this->result_message = 'SUCCESS';
 
         $results = [];
 
-        // todo - bad, loads all values first via get();
-
         foreach ($keys as $key) {
-            /** @noinspection NotOptimalIfConditionsInspection */
-            if ($this->getByKey($server_key, $key) || $this->_result_code === self::RES_SUCCESS) {
-                $results[$key] = $this->deleteByKey($server_key, $key, $time);
-            } else {
+            if (false === $results[$key] = $this->deleteByKey($server_key, $key, $time)) {
                 $results[$key] = self::RES_NOTFOUND;
 
                 // Set error result if any failed.
-                $this->_result_code = self::RES_NOTFOUND;
-                $this->_result_message = 'NOT FOUND';
+                $this->result_code = self::RES_NOTFOUND;
+                $this->result_message = 'NOT FOUND';
             }
         }
-
-        // \Memcached::deleteMultiple returns True or False on error - according to http://php.net/manual/en/memcached.deletemulti.php.
-        // But it actually returns array of Key=>Result or false according to https://github.com/php-memcached-dev/php-memcached/blob/master/tests/deletemulti.phpt.
-
-        // If we have servers with wrong details added, and missed keys are deleted:
-        // 1. result message is 'SERVER HAS FAILED AND IS DISABLED UNTIL TIMED RETRY'
-        // 2. missed keys in return array have result 47
-        // 3. final result code is 47
 
         return $results;
     }
@@ -617,7 +778,7 @@ class MemcachedEmulator
     public function fetch()
     {
         /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-        throw new BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
 
     /**
@@ -625,13 +786,12 @@ class MemcachedEmulator
      * Fetch all the remaining results
      *
      * @link http://php.net/manual/en/memcached.fetchall.php
-     * @return array the results or <b>FALSE</b> on failure.
-     * Use <b>Memcached::getResultCode</b> if necessary.
+     * @return array the results or <b>FALSE</b> on failure. Use <b>Memcached::getResultCode</b> if necessary.
      */
     public function fetchAll()
     {
         /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-        throw new BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
 
     /**
@@ -645,18 +805,16 @@ class MemcachedEmulator
      */
     public function flush($delay = 0)
     {
-        // todo - execute on all servers.
-        if ($this->_writeSocket(null, 'flush_all' . ($delay ? ' ' . (int)$delay : null), true) === 'OK') {
-            $this->_result_code = self::RES_SUCCESS;
-            $this->_result_message = '';
-
-            return true;
+        foreach (\array_keys($this->servers) as $server_key) {
+            // <flush_all[ delay]>
+            if (false !== $response = $this->_write($server_key, 'flush_all' . ($delay ? ' ' . (int)$delay : null))) {
+                if ($response !== self::RESPONSE_OK) {
+                    $this->_checkInvalidResponse(null, 'flush_all', $response);
+                }
+            }
         }
 
-        $this->_result_code = self::RES_SOME_ERRORS;
-        $this->_result_message = 'SOME ERRORS WERE REPORTED';
-
-        return false;
+        return $this->_return(true, self::RES_SUCCESS);
     }
 
     /**
@@ -664,17 +822,18 @@ class MemcachedEmulator
      * Retrieve an item
      *
      * @link http://php.net/manual/en/memcached.get.php
-     * @param string   $key       <p>The key of the item to retrieve.</p>
-     * @param callable $cache_cb  [optional] <p>Read-through caching callback or <b>NULL</b>.</p>
-     * @param float    $cas_token [optional] <p>The variable to store the CAS token in.</p>
+     * @param string   $key        <p>The key of the item to retrieve.</p>
+     * @param callable $cache_cb   [optional] <p>Read-through caching callback or <b>NULL</b>.</p>
+     * @param int      $flags      [optional] <p>Flags to control the returned result. When value of
+     *                             <b>Memcached::GET_EXTENDED</b> is given will return the CAS token.</p>
      * @return mixed the value stored in the cache or <b>FALSE</b> otherwise.
-     *                            The <b>Memcached::getResultCode</b> will return
-     *                            <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
+     *                             The <b>Memcached::getResultCode</b> will return
+     *                             <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
      */
-    public function get($key, callable $cache_cb = null, &$cas_token = null)
+    public function get($key, callable $cache_cb = null, $flags = null)
     {
         // Note: we use only single default server.
-        return $this->getByKey(null, $key, $cache_cb, $cas_token);
+        return $this->getByKey(null, $key, $cache_cb, $flags);
     }
 
     /**
@@ -682,60 +841,51 @@ class MemcachedEmulator
      * Gets the keys stored on all the servers
      *
      * @link http://php.net/manual/en/memcached.getallkeys.php
-     * @return array the keys stored on all the servers on success or <b>FALSE</b> on failure.
+     * @return array|false The keys stored on all the servers on success or <b>FALSE</b> on failure.
      */
     public function getAllKeys()
     {
-        // todo - currently on default server only.
-        $server_key = null;
-
-        // Get slabs.
-        $slabs = [];
-
-        if ($this->_writeSocket($server_key, 'stats slabs')) {
-            while (!$this->_endOfSocket($server_key)) {
-                $temp = $this->_readSocket($server_key);
-
-                if ($temp === 'END') {
-                    break;
-                }
-
-                /** @noinspection NotOptimalRegularExpressionsInspection */
-                if (\preg_match('/^STAT\s([0-9]+)\:/', $temp, $slab_temp)) {
-                    if (!empty($slab_temp['1'])) {
-                        $slabs[$slab_temp['1']] = true;
-                    }
-
-                }
-            }
-
-            $slabs = \array_keys($slabs);
-        }
-
-        // Keys
         $keys = [];
 
-        foreach ($slabs as &$slab) {
-            // 0 means no limit of items per slab.
-            if ($this->_writeSocket($server_key, "stats cachedump $slab 0", false)) {
-                while (!$this->_endOfSocket($server_key)) {
-                    $temp = $this->_readSocket($server_key);
+        foreach (\array_keys($this->servers) as $server_key) {
+            // Get server slabs.
+            $slabs = [];
 
-                    if ($temp === 'END') {
-                        break;
+            // stats slabs
+            if (false !== $response = $this->_write($server_key, 'stats slabs', $socket)) {
+                $this->_checkInvalidResponse($server_key, 'stats', $response);
+
+                while ($response !== self::RESPONSE_END) {
+                    if (\preg_match('/^STAT\s(\d+)\:/', $response, $matches) && !empty($matches['1'])) {
+                        $slabs[$matches['1']] = true;
                     }
 
-                    // ITEM key [4 b; 1465467876 s]
-                    \preg_match('/^ITEM\s(.*)\s\[[0-9]+\sb\;\s([0-9]+)\ss\]$/', $temp, $key_temp);
+                    // Read next line.
+                    $response = $this->_read($socket);
+                }
 
-                    if (!empty($key_temp['1'])) {
-                        $keys[$key_temp['1']] = true;
+                $slabs = \array_keys($slabs);
+            }
+
+            foreach ($slabs as &$slab) {
+                // 0 means no limit of items per slab.
+                if (false !== $response = $this->_write($server_key, "stats cachedump $slab 0", $socket)) {
+                    $this->_checkInvalidResponse($server_key, 'stats', $response);
+
+                    while ($response !== self::RESPONSE_END) {
+                        if (\strpos($response, self::RESPONSE_ITEM) === 0) {
+                            list(, $key) = \explode(' ', $response);
+
+                            // Collect unique keys.
+                            $keys[$key] = true;
+                        }
+
+                        // Read next line.
+                        $response = $this->_read($socket);
                     }
-                    // note: $key_temp['2'] holds expiration lifetime or set time, not sure.
                 }
             }
         }
-        unset($slabs, $slab);
 
         return \array_keys($keys);
     }
@@ -748,44 +898,95 @@ class MemcachedEmulator
      * @param string   $server_key <p>The key identifying the server to store the value on or retrieve it from.</p>
      * @param string   $key        <p>The key of the item to fetch.</p>
      * @param callable $cache_cb   [optional] <p>Read-through caching callback or <b>NULL</b></p>
-     * @param float    $cas_token  [optional] <p>The variable to store the CAS token in.</p>
+     * @param int      $flags      [optional] <p>Flags to control the returned result. When value of
+     *                             <b>Memcached::GET_EXTENDED</b> is given will return the CAS token.</p>
      * @return mixed the value stored in the cache or <b>FALSE</b> otherwise.
      *                             The <b>Memcached::getResultCode</b> will return
      *                             <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
      */
-    public function getByKey($server_key, $key, callable $cache_cb = null, &$cas_token = null)
+    public function getByKey($server_key, $key, callable $cache_cb = null, $flags = null)
     {
-        $key_string = $this->_getKey($key);
+        $real_key = $this->_getKey($key);
 
-        $s = $this->_writeSocket($server_key, "get $key_string", true);
+        $cas = $flags && ($flags & self::GET_EXTENDED);
 
-        if (empty($s) || \strpos($s, 'VALUE') !== 0) {
-            $this->_result_code = self::RES_FAILURE;
-            $this->_result_message = 'Get failed.';
+        if (false !== $response = $this->_write($server_key, ($cas ? 'gets' : 'get') . " $real_key", $socket)) {
+            // Not found
+            if ($response === self::RESPONSE_END) {
 
-            // Callback, see http://php.net/manual/en/memcached.callbacks.read-through.php
-            if ($cache_cb && $cache_cb($this, $key, $s) === true) {
-                return $s;
+                // Apply $cache_cb
+                // see http://php.net/manual/en/memcached.callbacks.read-through.php
+                /** @noinspection PhpUndefinedVariableInspection */
+                if ($cache_cb && $cache_cb($this, $real_key, $value) === true) {
+                    // Store value, note that expiration is always 0.
+                    if ($this->setByKey($server_key, $key, $value, 0)) {
+                        // Return cas token?
+                        if ($cas) {
+                            return $this->getByKey($server_key, $key, null, $flags);
+                        }
+
+                        // Return stored value.
+                        return $this->_return($value, self::RES_SUCCESS);
+                    }
+
+                    // Store failed.
+                    return false;
+                }
+
+                return $this->_return(false, self::RES_NOTFOUND, 'Key not found.');
             }
 
-            return false;
+            // VALUE <key> <flags> <bytes> [<cas unique>]
+            if (\strpos($response, self::RESPONSE_VALUE) === 0) {
+                // Read key meta data.
+                $meta = explode(' ', $response);
+
+                /*
+                 * $meta[1] holds key
+                 * $meta[2] holds flags
+                 * $meta[3] holds bytes
+                 * $meta[4] holds cas token (if requested via 'gets' command)
+                 */
+
+                $value = '';
+
+                if ($meta[3]) {
+                    while (\strlen($value) <= $meta[3]) {
+                        $value .= \fgets($socket);
+                    }
+
+                    // Trim last \r\n
+                    if (\strlen($value) !== (int)$meta[3]) {
+                        $value = \substr($value, 0, $meta[3]);
+                    }
+                } else {
+                    // 0 bytes? Still fetch empty <data block> once.
+                    \fgets($socket);
+                }
+
+                // Fetch END
+                \fgets($socket);
+
+                // Set success result data.
+                $this->result_code = self::RES_SUCCESS;
+                $this->result_message = '';
+
+                // Return cas token with value.
+                if ($cas) {
+                    // see http://php.net/manual/en/memcached.get.php#121119
+                    return [
+                        'value' => $this->_unserialize($value, (int)$meta[2]),
+                        'cas'   => isset($meta[4]) ? (float)$meta[4] : null, // As float!
+                    ];
+                }
+
+                return $this->_unserialize($value, (int)$meta[2]);
+            }
+
+            $this->_checkInvalidResponse($server_key, 'get', $response);
         }
 
-        $this->_result_code = self::RES_SUCCESS;
-        $this->_result_message = '';
-
-        $value = '';
-        $line = '';
-
-        while ($line !== 'END') {
-            $value .= $line;
-            $line = $this->_readSocket($server_key);
-        }
-
-        // todo - how to emulate it?
-        $cas_token = 2.0;
-
-        return $this->_unserialize($value);
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
@@ -803,7 +1004,7 @@ class MemcachedEmulator
     {
         // todo
         /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-        throw new BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
 
     /**
@@ -822,7 +1023,7 @@ class MemcachedEmulator
     {
         // todo
         /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-        throw new BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
 
     /**
@@ -831,15 +1032,14 @@ class MemcachedEmulator
      *
      * @link http://php.net/manual/en/memcached.getmulti.php
      * @param array $keys       <p>Array of keys to retrieve.</p>
-     * @param array $cas_tokens [optional] <p>The variable to store the CAS tokens for the found items.</p>
      * @param int   $flags      [optional] <p>The flags for the get operation.</p>
      * @return mixed the array of found items or <b>FALSE</b> on failure.
      *                          Use <b>Memcached::getResultCode</b> if necessary.
      */
-    public function getMulti(array $keys, array &$cas_tokens = null, $flags = null)
+    public function getMulti(array $keys, $flags = null)
     {
         // Note: we use only single default server.
-        return $this->getMultiByKey(null, $keys, $cas_tokens, $flags);
+        return $this->getMultiByKey(null, $keys, $flags);
     }
 
     /**
@@ -849,80 +1049,90 @@ class MemcachedEmulator
      * @link http://php.net/manual/en/memcached.getmultibykey.php
      * @param string $server_key <p>The key identifying the server to store the value on or retrieve it from.</p>
      * @param array  $keys       <p>Array of keys to retrieve.</p>
-     * @param string $cas_tokens [optional] <p>The variable to store the CAS tokens for the found items.</p>
      * @param int    $flags      [optional] <p>The flags for the get operation.</p>
      * @return array|false the array of found items or <b>FALSE</b> on failure.
      *                           Use <b>Memcached::getResultCode</b> if necessary.
      */
-    public function getMultiByKey($server_key, array $keys, &$cas_tokens = null, $flags = null)
+    public function getMultiByKey($server_key, array $keys, $flags = null)
     {
-        $key_strings = \array_map([&$this, '_getKey'], $keys);
+        $real_keys = $this->_getKeys($keys);
 
-        $line = $this->_writeSocket($server_key, 'get ' . \implode(' ', $key_strings), true);
+        if ($cas = ($flags && ($flags & self::GET_EXTENDED))) {
+            $cas_tokens = [];
+        }
 
         $values = [];
 
-        // Preserve order?
-        if ($flags === self::GET_PRESERVE_ORDER) {
-            foreach ($keys as $key) {
-                $values[$key] = null;
-            }
-        }
-
-        // No keys.
-        if ($line === 'END') {
-            $this->_result_code = self::RES_SUCCESS;
-            $this->_result_message = '';
-
-            return [];
-        }
-
-        // Error.
-        if ($line === null || \strpos($line, 'VALUE') !== 0) {
-            $this->_result_code = self::RES_FAILURE;
-            $this->_result_message = 'Get failed.';
-
-            return false;
-        }
-
-        $this->_result_code = self::RES_SUCCESS;
-        $this->_result_message = '';
-
-        $loaded_keys = [];
-
-        $current_key = null;
-
-        while ($line) {
-            // New key start.
-            if ($current_key === null && \strpos($line, 'VALUE') === 0) {
-                list(, $current_key, ,) = \explode(' ', $line);
-
-                $current_key = \substr($current_key, \strlen($this->options[self::OPT_PREFIX_KEY]));
-            } // End of all keys
-            elseif ($line === 'END' && $current_key === null) {
-                break;
-            } // Data
-            else {
-                // todo - how to emulate cas token?
-                $cas_tokens[$current_key] = '2';
-
-                // Remember loaded key.
-                $loaded_keys[$current_key] = true;
-
-                $values[$current_key] = $this->_unserialize($line);
-                $current_key = null;
+        if (false !== $response = $this->_write($server_key, ($cas ? 'gets' : 'get') . ' ' . \implode(' ', $real_keys),
+                $socket)) {
+            // No keys.
+            if ($response === self::RESPONSE_END) {
+                return $this->_return([], self::RES_SUCCESS);
             }
 
-            $line = $this->_readSocket($server_key);
-        }
+            while ($response !== false) {
+                // VALUE <key> <flags> <bytes> [<cas unique>]
+                if (\strpos($response, self::RESPONSE_VALUE) === 0) {
+                    // Read key meta data.
+                    $meta = explode(' ', $response);
 
-        // Removed non-loaded keys.
-        if ($flags === self::GET_PRESERVE_ORDER) {
-            foreach ($keys as $key) {
-                if (!\array_key_exists($key, $loaded_keys)) {
-                    unset($values[$key]);
+                    /*
+                     * $meta[1] holds key
+                     * $meta[2] holds flags
+                     * $meta[3] holds bytes
+                     * $meta[4] holds cas token (if requested via 'gets' command)
+                     */
+
+                    $value = '';
+
+                    if ($meta[3]) {
+                        while (\strlen($value) <= $meta[3]) {
+                            $value .= \fgets($socket);
+                        }
+
+                        // Trim last \r\n
+                        if (\strlen($value) !== (int)$meta[3]) {
+                            $value = \substr($value, 0, $meta[3]);
+                        }
+                    }
+
+                    // Get requested key.
+                    $key = \array_search($meta[1], $real_keys, false);
+
+                    // Store value.
+                    $values[$key] = $this->_unserialize($value, (int)$meta[2]);
+
+                    // Store cas tokens.
+                    if ($cas) {
+                        $cas_tokens[$key] = $meta[4] ?? null;
+                    }
+                }
+
+                $this->_checkInvalidResponse($server_key, 'get', $response);
+
+                // Next VALUE line or final END.
+                if (self::RESPONSE_END === $response = $this->_read($socket)) {
+                    break;
                 }
             }
+        }
+
+        $this->result_code = self::RES_SUCCESS;
+        $this->result_message = '';
+
+        // Preserve order?
+        if ($flags && ($flags & self::GET_PRESERVE_ORDER)) {
+            $ordered_values = array_fill_keys($keys, true);
+
+            foreach ($ordered_values as $k => $v) {
+                if (!\array_key_exists($k, $values)) {
+                    unset($ordered_values[$k]);
+                } else {
+                    $ordered_values[$k] = $values[$k];
+                }
+            }
+
+            return $ordered_values;
         }
 
         return $values;
@@ -939,15 +1149,12 @@ class MemcachedEmulator
      */
     public function getOption($option)
     {
-        // Always same.
-        $this->_result_code = self::RES_SUCCESS;
-        $this->_result_message = '';
+        // Always same, even for missed options.
+        $this->result_code = self::RES_SUCCESS;
+        $this->result_message = '';
 
-        if (isset($this->options[$option])) {
-            return $this->options[$option];
-        }
-
-        return false;
+        // Actually any non-existent option is INT 0.
+        return $this->options[$this->options_id][$option] ?? 0;
     }
 
     /**
@@ -959,7 +1166,7 @@ class MemcachedEmulator
      */
     public function getResultCode()
     {
-        return $this->_result_code;
+        return $this->result_code;
     }
 
     /**
@@ -971,7 +1178,7 @@ class MemcachedEmulator
      */
     public function getResultMessage()
     {
-        return $this->_result_message;
+        return $this->result_message;
     }
 
     /**
@@ -986,7 +1193,7 @@ class MemcachedEmulator
      */
     public function getServerByKey($server_key)
     {
-        return $this->_servers[$server_key] ?? false;
+        return $this->servers[$server_key] ?? false;
     }
 
     /**
@@ -998,7 +1205,7 @@ class MemcachedEmulator
      */
     public function getServerList()
     {
-        return $this->_servers;
+        return \array_values($this->servers);
     }
 
     /**
@@ -1010,8 +1217,25 @@ class MemcachedEmulator
      */
     public function getStats()
     {
-        /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-        throw new BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
+        $stats = [];
+
+        foreach (\array_keys($this->servers) as $server_key) {
+            // stats
+            if (false !== $response = $this->_write($server_key, 'stats', $socket)) {
+                $this->_checkInvalidResponse($server_key, 'stats', $response);
+
+                while ($response !== self::RESPONSE_END) {
+                    if (\preg_match('/^STAT\s(\w+)\s(.*)/', $response, $matches)) {
+                        $stats[$server_key][$matches[1]] = $matches[2];
+                    }
+
+                    // Read next line.
+                    $response = $this->_read($socket);
+                }
+            }
+        }
+
+        return $stats;
     }
 
     /**
@@ -1025,15 +1249,18 @@ class MemcachedEmulator
     {
         $results = [];
 
-        foreach ($this->_servers as $server_key => $tmp) {
-            if (false !== $result = $this->_writeSocket($server_key, 'version', true)) {
-                // Strip starting 'VERSION '
-                $results[$server_key] = \substr($result, 8);
-            } else {
-                // fake or invalid hosts are always returned as
-                // [fake:11210] => 255.255.255
-                $results[$server_key] = '255.255.255';
+        foreach ($this->servers as $server_key => $tmp) {
+            if (false !== $response = $this->_write($server_key, 'version')) {
+                if (\strpos($response, self::RESPONSE_VERSION) === 0) {
+                    // Strip starting 'VERSION '
+                    $results[$server_key] = \substr($response, 8);
+
+                    continue;
+                }
             }
+            // fake or invalid hosts are always returned as
+            // [fake:11210] => 255.255.255
+            $results[$server_key] = '255.255.255';
         }
 
         return $results;
@@ -1070,14 +1297,36 @@ class MemcachedEmulator
      */
     public function incrementByKey($server_key, $key, $offset = 1, $initial_value = 0, $expiry = 0)
     {
-        // todo - switch to native socket operation.
-        if (false === $value = $this->getByKey($server_key, $key)) {
-            $value = $initial_value;
+        $real_key = $this->_getKey($key);
+        $expiry = (int)$expiry;
+
+        if (!is_scalar($offset)) {
+            return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
-        $value += $offset;
+        // incr <key> <value> [noreply]\r\n
+        if (false !== $response = $this->_write($server_key, "incr $real_key $offset")) {
+            // Not found? Use initial value.
+            if ($response === self::RESPONSE_NOT_FOUND) {
+                $value = $initial_value + $offset;
+                return $this->setByKey($server_key, $key, $value, $expiry) ? $value : false;
+            }
 
-        return $this->setByKey($server_key, $key, $value, $expiry) ?: false;
+            // Another invalid response.
+            if (isset(self::STORE_RESPONSES[$response])) {
+
+                // Another response
+                $this->result_code = self::STORE_RESPONSES[$response];
+                $this->result_message = '';
+
+                return false;
+            }
+
+            // Check possible invalid response.
+            $this->_checkInvalidResponse($server_key, 'incr', $response);
+        }
+
+        return (int)$response;
     }
 
     /**
@@ -1089,7 +1338,7 @@ class MemcachedEmulator
      */
     public function isPersistent()
     {
-        return $this->_persistent_id !== null;
+        return $this->persistent_id !== null;
     }
 
     /**
@@ -1101,7 +1350,9 @@ class MemcachedEmulator
      */
     public function isPristine()
     {
-        return $this->_persistent_id === null;
+        // means the connection to server of the instance is recently created, that is the instance was created
+        // without a persistent_id parameter or the first to use the persistent_id.
+        return $this->is_pristine;
     }
 
     /**
@@ -1135,29 +1386,29 @@ class MemcachedEmulator
      */
     public function prependByKey($server_key, $key, $value)
     {
-        // Prepend does not take <flags> or <exptime> parameters but you must provide them !
-        // Doesn't work with enabled compression.
+        $key = $this->_getKey($key);
 
-        $key_string = $this->_getKey($key);
-
-        if ($this->_writeSocket($server_key, "prepend $key_string 0 0 " . \strlen($value))) {
-            if ($this->_writeSocket($server_key, $value, true) === 'STORED') {
-                $this->_result_code = self::RES_SUCCESS;
-                $this->_result_message = '';
-
-                return true;
-            }
-
-            $this->_result_code = self::RES_NOTSTORED;
-            $this->_result_message = 'NOT STORED';
-
-            return false;
+        if (!is_scalar($value)) {
+            return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
-        $this->_result_code = self::RES_FAILURE;
-        $this->_result_message = 'Prepend failed.';
+        $bytes = \strlen($value);
 
-        return false;
+        // prepend <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
+        // flags and exptime are ignored.
+        if (false !== $response = $this->_write($server_key, "prepend $key 0 0 $bytes\r\n$value")) {
+            // Valid response.
+            if (isset(self::STORE_RESPONSES[$response])) {
+                $this->result_code = self::STORE_RESPONSES[$response];
+                $this->result_message = '';
+
+                return $this->result_code === self::RES_SUCCESS;
+            }
+
+            $this->_checkInvalidResponse($server_key, 'prepend', $response);
+        }
+
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
@@ -1169,6 +1420,7 @@ class MemcachedEmulator
      */
     public function quit()
     {
+        // todo - do we need to send 'quit' command for each?
         $this->_closeSockets();
 
         return true;
@@ -1207,27 +1459,27 @@ class MemcachedEmulator
      */
     public function replaceByKey($server_key, $key, $value, $expiration = 0)
     {
-        $key_string = $this->_getKey($key);
-        $value_string = $this->_serialize($value);
+        $key = $this->_getKey($key);
+        $expiration = (int)$expiration;
 
-        if ($this->_writeSocket($server_key, "replace $key_string 0 $expiration " . \strlen($value_string))) {
-            if ($this->_writeSocket($server_key, $value_string, true) === 'STORED') {
-                $this->_result_code = self::RES_SUCCESS;
-                $this->_result_message = '';
-
-                return true;
-            }
-
-            $this->_result_code = self::RES_NOTSTORED;
-            $this->_result_message = 'Replace failed.';
-
-            return false;
+        if (!$this->_serialize($value, $flags, $bytes)) {
+            return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
-        $this->_result_code = self::RES_FAILURE;
-        $this->_result_message = 'Replace failed.';
+        // replace <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
+        if (false !== $response = $this->_write($server_key, "replace $key $flags $expiration $bytes\r\n$value")) {
+            // Valid response.
+            if (isset(self::STORE_RESPONSES[$response])) {
+                $this->result_code = self::STORE_RESPONSES[$response];
+                $this->result_message = '';
 
-        return false;
+                return $this->result_code === self::RES_SUCCESS;
+            }
+
+            $this->_checkInvalidResponse($server_key, 'replace', $response);
+        }
+
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
@@ -1242,7 +1494,7 @@ class MemcachedEmulator
         // Close all sockets.
         $this->_closeSockets();
 
-        $this->_servers = [];
+        $this->servers = [];
 
         return true;
     }
@@ -1278,22 +1530,26 @@ class MemcachedEmulator
     public function setByKey($server_key, $key, $value, $expiration = 0)
     {
         $key = $this->_getKey($key);
-        $value = $this->_serialize($value);
         $expiration = (int)$expiration;
 
-        if ($this->_writeSocket($server_key, "set $key 0 $expiration " . \strlen($value))) {
-            if ($this->_writeSocket($server_key, $value, true) === 'STORED') {
-                $this->_result_code = self::RES_SUCCESS;
-                $this->_result_message = '';
-
-                return true;
-            }
+        if (!$this->_serialize($value, $flags, $bytes)) {
+            return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
-        $this->_result_code = self::RES_FAILURE;
-        $this->_result_message = 'Set failed.';
+        // set <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
+        if (false !== $response = $this->_write($server_key, "set $key $flags $expiration $bytes\r\n$value")) {
+            // Valid response.
+            if (isset(self::STORE_RESPONSES[$response])) {
+                $this->result_code = self::STORE_RESPONSES[$response];
+                $this->result_message = '';
 
-        return false;
+                return $this->result_code === self::RES_SUCCESS;
+            }
+
+            $this->_checkInvalidResponse($server_key, 'set', $response);
+        }
+
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
@@ -1350,9 +1606,67 @@ class MemcachedEmulator
      */
     public function setOption($option, $value)
     {
-        $this->options[$option] = $value;
+        switch ($option) {
+            case self::OPT_COMPRESSION;
+                $value = (bool)$value;
+                break;
 
-        return true;
+            case self::OPT_COMPRESSION_TYPE:
+                {
+                    switch ($value) {
+                        case 'fastlz':
+                        case self::COMPRESSION_FASTLZ;
+                            $value = self::COMPRESSION_FASTLZ;
+                            break;
+
+                        case 'zlib':
+                        case self::COMPRESSION_ZLIB;
+                            $value = self::COMPRESSION_ZLIB;
+                            break;
+
+                        default:
+                            return $this->_return(false, self::RES_INVALID_ARGUMENTS);
+                    }
+                }
+                break;
+
+            case self::OPT_SERIALIZER:
+                {
+                    switch ($value) {
+                        case 'igbinary':
+                        case self::SERIALIZER_IGBINARY:
+                            $value = \function_exists('igbinary_serialize') ? self::SERIALIZER_IGBINARY : self::SERIALIZER_PHP;
+                            break;
+
+                        case 'msgpack':
+                        case self::SERIALIZER_MSGPACK:
+                            $value = \function_exists('msgpack_pack') ? self::SERIALIZER_MSGPACK : self::SERIALIZER_PHP;
+                            break;
+
+                        case 'php':
+                        case self::SERIALIZER_PHP:
+                            $value = self::SERIALIZER_PHP;
+                            break;
+                        case 'json':
+                        case self::SERIALIZER_JSON:
+                            $value = self::SERIALIZER_JSON;
+                            break;
+
+                        case 'json_array':
+                        case self::SERIALIZER_JSON_ARRAY:
+                            $value = self::SERIALIZER_JSON_ARRAY;
+                            break;
+
+                        default:
+                            return $this->_return(false, self::RES_INVALID_ARGUMENTS);
+                    }
+                }
+                break;
+        }
+
+        $this->options[$this->options_id][$option] = $value;
+
+        return $this->_return(true, self::RES_SUCCESS);
     }
 
     /**
@@ -1366,7 +1680,9 @@ class MemcachedEmulator
     public function setOptions(array $options)
     {
         foreach ($options as $option => $value) {
-            $this->options[$option] = $value;
+            if (!$this->setOption($option, $value)) {
+                return false;
+            }
         }
 
         return true;
@@ -1384,7 +1700,7 @@ class MemcachedEmulator
     public function setSaslAuthData($username, $password)
     {
         /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-        throw new BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
+        throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
 
     /**
@@ -1419,21 +1735,20 @@ class MemcachedEmulator
         $key = $this->_getKey($key);
         $expiration = (int)$expiration;
 
-        if ($this->_writeSocket($server_key, "touch $key $expiration", true) === 'TOUCHED') {
-            $this->_result_code = self::RES_SUCCESS;
-            $this->_result_message = '';
+        // touch <key> <exptime> [noreply]\r\n
+        if (false !== $response = $this->_write($server_key, "touch $key $expiration")) {
+            // Valid response.
+            if (isset(self::TOUCH_RESPONSES[$response])) {
+                $this->result_code = self::TOUCH_RESPONSES[$response];
+                $this->result_message = '';
 
-            return true;
+                return $this->result_code === self::RES_SUCCESS;
+            }
+
+            $this->_checkInvalidResponse($server_key, 'touch', $response);
         }
 
-        $this->_result_code = self::RES_NOTFOUND;
-        $this->_result_message = 'NOT FOUND';
-
-        // With invalid servers we get these:
-        //$this->_result_code = self::RES_WRITE_FAILURE;
-        //$this->_result_message = 'WRITE FAILURE';
-
-        return false;
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1442,7 +1757,7 @@ class MemcachedEmulator
 
 
     /**
-     * Get item key
+     * Returns real item key.
      *
      * @param   string $key
      *
@@ -1450,7 +1765,25 @@ class MemcachedEmulator
      */
     protected function _getKey($key)
     {
-        return \addslashes($this->options[self::OPT_PREFIX_KEY]) . $key;
+        return \addslashes($this->options[$this->options_id][self::OPT_PREFIX_KEY] . $key);
+    }
+
+    /**
+     * Returns real items keys.
+     *
+     * @param   string[] $keys
+     *
+     * @return  string[]
+     */
+    protected function _getKeys(array $keys)
+    {
+        $real_keys = [];
+
+        foreach ($keys as $key) {
+            $real_keys[$key] = \addslashes($this->options[$this->options_id][self::OPT_PREFIX_KEY] . $key);
+        }
+
+        return $real_keys;
     }
 
     /**
@@ -1463,60 +1796,133 @@ class MemcachedEmulator
     {
         // Use default server key.
         if ($server_key === null) {
-            if ($this->_current_server_key === null) {
+            if ($this->current_server_key === null) {
                 // Check if we have servers.
-                if (empty($this->_servers)) {
-                    $this->_result_code = self::RES_NO_SERVERS;
-                    $this->_result_message = 'NO SERVERS DEFINED';
+                if (empty($this->servers)) {
+                    $this->result_code = self::RES_NO_SERVERS;
+                    $this->result_message = 'NO SERVERS DEFINED';
 
                     return false;
                 }
 
                 // Use first server by default.
-                $this->_current_server_key = \key($this->_servers);
+                $this->current_server_key = \key($this->servers);
             }
 
             /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-            $server_key = $this->_current_server_key;
+            $server_key = $this->current_server_key;
         }
 
-        if (!isset($this->_sockets[$server_key])) {
+        if (!isset($this->sockets[$server_key])) {
             // Check that server key exists.
-            if (!isset($this->_servers[$server_key])) {
+            if (!isset($this->servers[$server_key])) {
                 return false;
             }
 
-            $server = $this->_servers[$server_key];
+            $server = $this->servers[$server_key];
 
-            if (false === $this->_sockets[$server_key] = \fsockopen($server['host'], $server['port'], $error,
-                    $errstr)) {
+            try {
+                if (false === $this->sockets[$server_key] = \fsockopen($server['host'], $server['port'], $error,
+                        $errstr)) {
+                    throw new \RuntimeException(\sprintf('Code %s: %s', $error, $errstr));
+                }
+            } catch (\Throwable $e) {
                 /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-                throw new \RuntimeException(\sprintf('%s failed: connecting to %s error: [%s] %s', __CLASS__,
-                    $server_key, $error, $errstr));
+                throw new \RuntimeException(\sprintf('%s connection failed: connecting to "%s" error: %s', __CLASS__,
+                    $server_key, $e->getMessage()));
             }
         }
 
-        return $this->_sockets[$server_key];
+        return $this->sockets[$server_key];
     }
 
     /**
-     * Write data to socket.
+     * Writes data to socket and reads first line.
      *
-     * @param  string  $server_key
-     * @param  string  $cmd
-     * @param  boolean $return_result
-     * @param  int     $result_length
-     * @return mixed
+     * @param  string         $server_key
+     * @param  string         $cmd
+     * @param  resource|false $socket
+     * @return string|false False on error.
      */
-    protected function _writeSocket($server_key, $cmd, $return_result = false, $result_length = null)
+    protected function _write($server_key, $cmd, &$socket = null)
     {
-        if (false !== $socket = $this->_getSocket($server_key)) {
-            if (\fwrite($socket, $cmd . "\r\n") !== 0) {
-                return $return_result ? $this->_readSocket($server_key, $result_length) : true;
-            }
+        if (
+            (false !== $socket = $this->_getSocket($server_key))
+            &&
+            (\fwrite($socket, $cmd . "\r\n") > 0)
+            &&
+            (false !== $response = \fgets($socket))
+        ) {
+            // Strip trailing "\r\n"
+            return \substr($response, 0, -2);
+
+        }
+
+
+        return false;
+    }
+
+    /**
+     * Reads line from socket.
+     *
+     * @param resource $socket
+     * @return string|false
+     */
+    protected function _read($socket)
+    {
+        if (false !== $response = \fgets($socket)) {
+            // Strip trailing "\r\n"
+            return \substr($response, 0, -2);
         }
 
         return false;
+    }
+
+    /**
+     * @param string $server_key
+     * @param string $command
+     * @param string $response
+     */
+    protected function _checkInvalidResponse($server_key, $command, $response)
+    {
+        // RESPONSE_ERROR mostly means non-existent command.
+        if ($response === self::RESPONSE_ERROR) {
+            /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+            throw new \RuntimeException(
+                sprintf(
+                    '%s on sending command "%s" to server "%s".',
+                    self::RESPONSE_ERROR,
+                    $command,
+                    $server_key ?? $this->current_server_key
+                )
+            );
+        }
+
+        if (preg_match('/' . self::RESPONSE_CLIENT_ERROR . ' (.*)\R?/mu', $response, $error) > 0) {
+            /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+            throw new \RuntimeException(
+                sprintf(
+                    '%s error "%s" on sending command "%s" to server "%s".',
+                    self::RESPONSE_CLIENT_ERROR,
+                    $error[1],
+                    $command,
+                    $server_key ?? $this->current_server_key
+                )
+            );
+        }
+
+        if (preg_match('/' . self::RESPONSE_SERVER_ERROR . ' (.*)\R?/mu', $response, $error) > 0) {
+            /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+            throw new \RuntimeException(
+                sprintf(
+                    '%s error "%s" on sending command "%s" to server "%s".',
+                    self::RESPONSE_SERVER_ERROR,
+                    $error[1],
+                    $command,
+                    $server_key ?? $this->current_server_key
+                )
+            );
+        }
     }
 
     /**
@@ -1525,6 +1931,7 @@ class MemcachedEmulator
      * @param  string $server_key
      * @param   int   $length
      * @return  string|false
+     * @deprecated
      */
     protected function _readSocket($server_key, $length = null)
     {
@@ -1541,6 +1948,7 @@ class MemcachedEmulator
      *
      * @param  string $server_key
      * @return bool
+     * @deprecated
      */
     protected function _endOfSocket($server_key = null)
     {
@@ -1558,8 +1966,9 @@ class MemcachedEmulator
      */
     protected function _closeSockets()
     {
-        foreach ($this->_sockets as $socket) {
+        foreach ($this->sockets as $i => $socket) {
             \fclose($socket);
+            unset($this->sockets[$i]);
         }
 
         return true;
@@ -1569,51 +1978,191 @@ class MemcachedEmulator
      * Serialize a value.
      *
      * @param  mixed $value
-     * @return string
+     * @param  int   $flags
+     * @param  int   $bytes
+     * @return bool
      */
-    protected function _serialize($value)
+    protected function _serialize(&$value, &$flags, &$bytes)
     {
-        switch ($this->options[self::OPT_SERIALIZER]) {
-            case self::SERIALIZER_IGBINARY:
-                if (\function_exists('igbinary_serialize')) {
-                    return \igbinary_serialize($value);
-                }
+        switch (\gettype($value)) {
+            case 'string':
+                self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_STRING);
                 break;
 
-            case self::SERIALIZER_JSON:
-                return \json_encode($value);
+            case 'integer':
+                self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_LONG);
+                break;
 
-            case self::SERIALIZER_JSON_ARRAY:
-                return \json_encode($value, true);
+            case 'double':
+                self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_DOUBLE);
+                break;
+
+            case 'boolean':
+                self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_BOOL);
+                break;
+
+            default:
+                {
+
+                    switch ($this->options[$this->options_id][self::OPT_SERIALIZER]) {
+                        case self::SERIALIZER_IGBINARY:
+                            $value = \igbinary_serialize($value);
+                            self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_IGBINARY);
+                            break;
+
+                        case self::SERIALIZER_JSON:
+                        case self::SERIALIZER_JSON_ARRAY:
+                            $value = \json_encode($value);
+                            self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_JSON);
+                            break;
+
+                        case self::SERIALIZER_MSGPACK:
+                            /** @noinspection PhpUndefinedFunctionInspection */
+                            $value = \msgpack_pack($value);
+                            self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_MSGPACK);
+                            break;
+
+                        case self::SERIALIZER_PHP:
+                        default:
+                            $value = \serialize($value);
+                            self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_SERIALIZED);
+                            break;
+                    }
+                }
         }
 
-        return \serialize($value);
+        $value = (string)$value;
+        $bytes = \strlen($value);
+
+        // Compress, but not for values below the threshold
+        /** @noinspection TypeUnsafeComparisonInspection */
+        if ($bytes && $this->options[$this->options_id][self::OPT_COMPRESSION]) {
+            // Get compression threshold, 2000 by default.
+            if ('' === $compression_threshold = \ini_get('memcached.compression_threshold')) {
+                $compression_threshold = 2000;
+            }
+
+            // Check compression threshold
+            if ($bytes > $compression_threshold) {
+                // Get compression factor, float 1.3 by default.
+                if ('' === $compression_factor = ini_get('memcached.compression_factor')) {
+                    $compression_factor = 1.3;
+                }
+
+                switch ($this->options[$this->options_id][self::OPT_COMPRESSION_TYPE]) {
+                    case 'fastlz':
+                    case self::COMPRESSION_FASTLZ:
+                        /** @noinspection PhpUndefinedFunctionInspection */
+                        $value2 = \fastlz_compress($value);
+                        $compression_flag = self::MEMC_VAL_COMPRESSION_FASTLZ;
+                        break;
+
+                    case 'zlib':
+                    case self::COMPRESSION_ZLIB:
+                    default:
+                        $value2 = \gzcompress($value);
+                        $compression_flag = self::MEMC_VAL_COMPRESSION_ZLIB;
+                        break;
+                }
+
+                $bytes2 = \strlen($value2);
+
+                /* Compressed length should be not X larger than original. */
+                if ($bytes > $bytes2 * $compression_factor) {
+                    $value = $value2;
+                    $bytes = $bytes2;
+                    self::MEMC_VAL_SET_FLAG($flags, self::MEMC_VAL_COMPRESSED | $compression_flag);
+                }
+
+                // todo - always raise RES_PAYLOAD_FAILURE on any error.
+            }
+        }
+
+        // todo - check all serializations and return false on error.
+        // todo - always raise RES_PAYLOAD_FAILURE on any error.
+
+        return true;
     }
 
     /**
      * Unserialize a value.
      *
-     * @param  string $value
+     * @param  mixed $value
+     * @param  int   $flags
      * @return mixed
      */
-    protected function _unserialize($value)
+    protected function _unserialize($value, $flags)
     {
-        switch ($this->options[self::OPT_SERIALIZER]) {
-            case self::SERIALIZER_IGBINARY:
-                if (\function_exists('igbinary_unserialize')) {
-                    return \igbinary_unserialize($value);
-                }
-                break;
-
-            case self::SERIALIZER_JSON:
-                return \json_decode($value);
-
-            case self::SERIALIZER_JSON_ARRAY:
-                return \json_decode($value, true);
+        // Decompress first.
+        if (self::MEMC_VAL_HAS_FLAG($flags, self::MEMC_VAL_COMPRESSED)) {
+            if (self::MEMC_VAL_HAS_FLAG($flags, self::MEMC_VAL_COMPRESSION_ZLIB)) {
+                $value = \gzuncompress($value);
+            } elseif (self::MEMC_VAL_HAS_FLAG($flags, self::MEMC_VAL_COMPRESSION_FASTLZ)) {
+                /** @noinspection PhpUndefinedFunctionInspection */
+                $value = \fastlz_decompress($value);
+            }
         }
 
-        /** @noinspection UnserializeExploitsInspection */
-        return \unserialize($value);
+        switch (self::MEMC_VAL_GET_TYPE($flags)) {
+            case self::MEMC_VAL_IS_STRING:
+                break;
+
+            case self::MEMC_VAL_IS_LONG:
+                $value = (int)$value;
+                break;
+
+            case self::MEMC_VAL_IS_DOUBLE:
+                $value = (double)$value;
+                break;
+
+            case self::MEMC_VAL_IS_BOOL:
+                $value = (bool)$value;
+                break;
+
+            case self::MEMC_VAL_IS_SERIALIZED:
+                /** @noinspection UnserializeExploitsInspection */
+                $value = \unserialize($value);
+                break;
+
+            case self::MEMC_VAL_IS_IGBINARY:
+                $value = \igbinary_unserialize($value);
+                break;
+
+            case self::MEMC_VAL_IS_JSON:
+                $value = \json_decode($value,
+                    $this->options[$this->options_id][self::OPT_SERIALIZER] === self::SERIALIZER_JSON_ARRAY);
+                break;
+
+            case self::MEMC_VAL_IS_MSGPACK:
+                /** @noinspection PhpUndefinedFunctionInspection */
+                $value = \msgpack_unpack($value);
+                break;
+
+            default:
+                /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
+                throw new \RuntimeException('unknown payload type');
+        }
+
+        // todo - always raise RES_PAYLOAD_FAILURE on any error.
+
+        return $value;
+
+    }
+
+    /**
+     * Utility return.
+     *
+     * @param mixed  $result
+     * @param int    $result_code
+     * @param string $result_message
+     * @return mixed
+     */
+    protected function _return($result, $result_code = self::RES_SUCCESS, $result_message = '')
+    {
+        $this->result_code = $result_code;
+        $this->result_message = $result_message;
+
+        return $result;
     }
 
     /**
@@ -1623,4 +2172,45 @@ class MemcachedEmulator
     {
         $this->_closeSockets();
     }
+
+    public static function MEMC_CREATE_MASK($start, $n_bits)
+    {
+        return (((1 << $n_bits) - 1) << $start);
+    }
+
+    public static function MEMC_VAL_GET_TYPE($flags)
+    {
+        return ($flags & self::MEMC_MASK_TYPE);
+
+    }
+
+    /**
+     * @param int $flags
+     * @param int $type
+     */
+    public static function MEMC_VAL_SET_TYPE(&$flags, $type)
+    {
+        $flags |= ($type & self::MEMC_MASK_TYPE);
+    }
+
+    public static function MEMC_VAL_GET_FLAGS($flags)
+    {
+        return ((($flags) & self::MEMC_MASK_INTERNAL) >> 4);
+    }
+
+    public static function MEMC_VAL_SET_FLAG(&$flags, $flag)
+    {
+        $flags |= (($flag << 4) & self::MEMC_MASK_INTERNAL);
+    }
+
+    public static function MEMC_VAL_HAS_FLAG($flags, $flag)
+    {
+        return ((self::MEMC_VAL_GET_FLAGS($flags) & ($flag)) === ($flag));
+    }
+
+    public static function MEMC_VAL_DEL_FLAG(&$flags, $flag)
+    {
+        $flags &= (~(($flag << 4) & self::MEMC_MASK_INTERNAL));
+    }
+
 }
