@@ -884,7 +884,7 @@ class MemcachedEmulatorTest extends TestCase
         $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
 
         $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', 1));
-        $this->assertFalse(static::$m->touchByKey(static::SERVER_KEY, 'key1', 1));
+        $this->assertTrue(static::$m->touchByKey(static::SERVER_KEY, 'key1', 1));
 
         sleep(2);
 

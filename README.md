@@ -1,4 +1,4 @@
-# Memcached emulator
+# Memcached emulator  [![Build Status](https://travis-ci.org/avantarm/memcached-emulator.png?branch=master)](https://travis-ci.org/avantarm/memcached-emulator)
 
 [![Latest Stable Version](https://poser.pugx.org/avantarm/memcached-emulator/v/stable)](https://packagist.org/packages/avantarm/memcached-emulator)
 [![Total Downloads](https://poser.pugx.org/avantarm/memcached-emulator/downloads)](https://packagist.org/packages/avantarm/memcached-emulator)
