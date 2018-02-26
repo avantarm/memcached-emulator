@@ -24,7 +24,7 @@ Add `"avantarm/memcached-emulator": "~1.0"` to the require block in your compose
 Alternatively, you can simply run the following from the command line:
 
 ```sh
-composer require avantarm/memcached-emulator "~1.0"
+composer require avantarm/memcached-emulator
 ```
 
 Unsupported methods:
@@ -37,4 +37,4 @@ Memcached::getDelayed()
 Memcached::getDelayedByKey()
 ```
 
-$time parameter is not support for `Memcached::delete()` and `Memcached::deleteByKey()`.
+`$time` parameter is not supported for `Memcached::delete()` and `Memcached::deleteByKey()`.
