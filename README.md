@@ -7,18 +7,16 @@
 
 Memcached PHP extension emulator for Windows environment. 
 
-Emulates Memcached extension for PHP.
+Emulates Memcached 3.0.4 extension for PHP.
 
-Currently supports single server connection and most used methods only.
- 
 ## Installation via Composer
 
-Add `"avantarm/memcached-emulator": "~1.0@dev"` to the require block in your composer.json and then run `composer install`.
+Add `"avantarm/memcached-emulator": "~1.0"` to the require block in your composer.json and then run `composer install`.
 
 ```json
 {
 	"require": {
-		"avantarm/memcached-emulator": "~1.0@dev"
+		"avantarm/memcached-emulator": "~1.0"
 	}
 }
 ```
@@ -26,5 +24,17 @@ Add `"avantarm/memcached-emulator": "~1.0@dev"` to the require block in your com
 Alternatively, you can simply run the following from the command line:
 
 ```sh
-composer require avantarm/memcached-emulator "~1.0@dev"
+composer require avantarm/memcached-emulator "~1.0"
 ```
+
+Unsupported methods:
+
+```php
+Memcached::setSaslAuthData()
+Memcached::fetch()
+Memcached::fetchAll()
+Memcached::getDelayed()
+Memcached::getDelayedByKey()
+```
+
+$time parameter is not support for `Memcached::delete()` and `Memcached::deleteByKey()`.

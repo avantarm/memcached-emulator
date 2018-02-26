@@ -1002,7 +1002,6 @@ class MemcachedEmulator
      */
     public function getDelayed(array $keys, $with_cas = null, callable $value_cb = null)
     {
-        // todo
         /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
         throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
@@ -1021,7 +1020,6 @@ class MemcachedEmulator
      */
     public function getDelayedByKey($server_key, array $keys, $with_cas = null, callable $value_cb = null)
     {
-        // todo
         /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
         throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
@@ -1063,6 +1061,7 @@ class MemcachedEmulator
 
         $values = [];
 
+        /** @noinspection PhpUndefinedVariableInspection */
         if (false !== $response = $this->_write($server_key, ($cas ? 'gets' : 'get') . ' ' . \implode(' ', $real_keys),
                 $socket)) {
             // No keys.
@@ -2173,11 +2172,20 @@ class MemcachedEmulator
         $this->_closeSockets();
     }
 
+    /**
+     * @param int $start
+     * @param int $n_bits
+     * @return int
+     */
     public static function MEMC_CREATE_MASK($start, $n_bits)
     {
         return (((1 << $n_bits) - 1) << $start);
     }
 
+    /**
+     * @param int $flags
+     * @return int
+     */
     public static function MEMC_VAL_GET_TYPE($flags)
     {
         return ($flags & self::MEMC_MASK_TYPE);
@@ -2193,24 +2201,40 @@ class MemcachedEmulator
         $flags |= ($type & self::MEMC_MASK_TYPE);
     }
 
+    /**
+     * @param int $flags
+     * @return int
+     */
     public static function MEMC_VAL_GET_FLAGS($flags)
     {
         return ((($flags) & self::MEMC_MASK_INTERNAL) >> 4);
     }
 
+    /**
+     * @param int $flags
+     * @param int $flag
+     */
     public static function MEMC_VAL_SET_FLAG(&$flags, $flag)
     {
         $flags |= (($flag << 4) & self::MEMC_MASK_INTERNAL);
     }
 
+    /**
+     * @param int $flags
+     * @param int $flag
+     * @return bool
+     */
     public static function MEMC_VAL_HAS_FLAG($flags, $flag)
     {
         return ((self::MEMC_VAL_GET_FLAGS($flags) & ($flag)) === ($flag));
     }
 
+    /**
+     * @param int $flags
+     * @param int $flag
+     */
     public static function MEMC_VAL_DEL_FLAG(&$flags, $flag)
     {
         $flags &= (~(($flag << 4) & self::MEMC_MASK_INTERNAL));
     }
-
 }
