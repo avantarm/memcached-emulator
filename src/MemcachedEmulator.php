@@ -939,7 +939,7 @@ class MemcachedEmulator
             // VALUE <key> <flags> <bytes> [<cas unique>]
             if (\strpos($response, self::RESPONSE_VALUE) === 0) {
                 // Read key meta data.
-                $meta = explode(' ', $response);
+                $meta = \explode(' ', $response);
 
                 /*
                  * $meta[1] holds key
@@ -1057,9 +1057,6 @@ class MemcachedEmulator
 
         $cas = ($flags && ($flags & self::GET_EXTENDED));
 
-        $values = [];
-
-        /** @noinspection PhpUndefinedVariableInspection */
         if (false !== $response = $this->_write($server_key, ($cas ? 'gets' : 'get') . ' ' . \implode(' ', $real_keys),
                 $socket)) {
             // No keys.
@@ -1067,11 +1064,13 @@ class MemcachedEmulator
                 return $this->_return([], self::RES_SUCCESS);
             }
 
+            $values = [];
+
             while ($response !== false) {
                 // VALUE <key> <flags> <bytes> [<cas unique>]
                 if (\strpos($response, self::RESPONSE_VALUE) === 0) {
                     // Read key meta data.
-                    $meta = explode(' ', $response);
+                    $meta = \explode(' ', $response);
 
                     /*
                      * $meta[1] holds key
@@ -1103,8 +1102,7 @@ class MemcachedEmulator
                             'value' => $this->_unserialize($value, (int)$meta[2]),
                             'cas'   => isset($meta[4]) ? (float)$meta[4] : null, // As float!
                         ];
-                    }
-                    // Return value.
+                    } // Return value.
                     else {
                         $values[$key] = $this->_unserialize($value, (int)$meta[2]);
                     }
@@ -1117,27 +1115,30 @@ class MemcachedEmulator
                     break;
                 }
             }
-        }
 
-        $this->result_code = self::RES_SUCCESS;
-        $this->result_message = '';
+            $this->result_code = self::RES_SUCCESS;
+            $this->result_message = '';
 
-        // Preserve order?
-        if ($flags && ($flags & self::GET_PRESERVE_ORDER)) {
-            $ordered_values = \array_fill_keys($keys, true);
+            // Preserve order?
+            if ($flags && ($flags & self::GET_PRESERVE_ORDER)) {
+                $ordered_values = \array_fill_keys($keys, true);
 
-            foreach ($ordered_values as $k => $v) {
-                if (!\array_key_exists($k, $values)) {
-                    unset($ordered_values[$k]);
-                } else {
-                    $ordered_values[$k] = $values[$k];
+                foreach ($ordered_values as $k => $v) {
+                    if (!\array_key_exists($k, $values)) {
+                        unset($ordered_values[$k]);
+                    } else {
+                        $ordered_values[$k] = $values[$k];
+                    }
                 }
+
+                return $ordered_values;
             }
 
-            return $ordered_values;
+            return $values;
+
         }
 
-        return $values;
+        return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
 
     /**
