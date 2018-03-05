@@ -350,12 +350,13 @@ class MemcachedEmulator
             $this->options[$this->options_id] = static::$default_options;
 
             // Apply default INI options.
-            if ('' === $serializer = ini_get('memcached.serializer')) {
+            /** @noinspection UnnecessaryCastingInspection */
+            if ('' === $serializer = (string)\ini_get('memcached.serializer')) {
                 $serializer = \function_exists('igbinary_serialize') ? self::SERIALIZER_IGBINARY : self::SERIALIZER_PHP;
             }
             $this->setOption(self::OPT_SERIALIZER, $serializer);
 
-            if ('' === $compression_type = ini_get('memcached.compression_type')) {
+            if ('' === $compression_type = (string)\ini_get('memcached.compression_type')) {
                 $compression_type = 'fastlz';
             }
             $this->setOption(self::OPT_COMPRESSION_TYPE, $compression_type);
@@ -1619,12 +1620,23 @@ class MemcachedEmulator
                     switch ($value) {
                         case 'fastlz':
                         case self::COMPRESSION_FASTLZ;
-                            $value = self::COMPRESSION_FASTLZ;
+                            if (\function_exists('fastlz_compress')) {
+                                $value = self::COMPRESSION_FASTLZ;
+                            } // Fallback to ZLIB
+                            elseif (\function_exists('gzcompress')) {
+                                $value = self::COMPRESSION_ZLIB;
+                            } else {
+                                return $this->_return(false, self::RES_INVALID_ARGUMENTS);
+                            }
                             break;
 
                         case 'zlib':
                         case self::COMPRESSION_ZLIB;
-                            $value = self::COMPRESSION_ZLIB;
+                            if (\function_exists('gzcompress')) {
+                                $value = self::COMPRESSION_ZLIB;
+                            } else {
+                                return $this->_return(false, self::RES_INVALID_ARGUMENTS);
+                            }
                             break;
 
                         default:
@@ -2041,14 +2053,16 @@ class MemcachedEmulator
         /** @noinspection TypeUnsafeComparisonInspection */
         if ($bytes && $this->options[$this->options_id][self::OPT_COMPRESSION]) {
             // Get compression threshold, 2000 by default.
-            if ('' === $compression_threshold = \ini_get('memcached.compression_threshold')) {
+            /** @noinspection UnnecessaryCastingInspection */
+            if ('' === $compression_threshold = (string)\ini_get('memcached.compression_threshold')) {
                 $compression_threshold = 2000;
             }
 
             // Check compression threshold
             if ($bytes > $compression_threshold) {
                 // Get compression factor, float 1.3 by default.
-                if ('' === $compression_factor = ini_get('memcached.compression_factor')) {
+                /** @noinspection UnnecessaryCastingInspection */
+                if ('' === $compression_factor = (string)\ini_get('memcached.compression_factor')) {
                     $compression_factor = 1.3;
                 }
 
