@@ -1124,7 +1124,7 @@ class MemcachedEmulator
 
         // Preserve order?
         if ($flags && ($flags & self::GET_PRESERVE_ORDER)) {
-            $ordered_values = array_fill_keys($keys, true);
+            $ordered_values = \array_fill_keys($keys, true);
 
             foreach ($ordered_values as $k => $v) {
                 if (!\array_key_exists($k, $values)) {
@@ -2210,7 +2210,7 @@ class MemcachedEmulator
      */
     public static function MEMC_VAL_GET_FLAGS($flags)
     {
-        return ((($flags) & self::MEMC_MASK_INTERNAL) >> 4);
+        return (($flags & self::MEMC_MASK_INTERNAL) >> 4);
     }
 
     /**
@@ -2229,7 +2229,7 @@ class MemcachedEmulator
      */
     public static function MEMC_VAL_HAS_FLAG($flags, $flag)
     {
-        return ((self::MEMC_VAL_GET_FLAGS($flags) & ($flag)) === ($flag));
+        return ((self::MEMC_VAL_GET_FLAGS($flags) & $flag) === $flag);
     }
 
     /**
