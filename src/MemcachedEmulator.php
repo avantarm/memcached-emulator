@@ -1055,9 +1055,7 @@ class MemcachedEmulator
     {
         $real_keys = $this->_getKeys($keys);
 
-        if ($cas = ($flags && ($flags & self::GET_EXTENDED))) {
-            $cas_tokens = [];
-        }
+        $cas = ($flags && ($flags & self::GET_EXTENDED));
 
         $values = [];
 
@@ -1098,12 +1096,17 @@ class MemcachedEmulator
                     // Get requested key.
                     $key = \array_search($meta[1], $real_keys, false);
 
-                    // Store value.
-                    $values[$key] = $this->_unserialize($value, (int)$meta[2]);
-
-                    // Store cas tokens.
+                    // Return cas token with value.
                     if ($cas) {
-                        $cas_tokens[$key] = $meta[4] ?? null;
+                        // see http://php.net/manual/en/memcached.get.php#121119
+                        $values[$key] = [
+                            'value' => $this->_unserialize($value, (int)$meta[2]),
+                            'cas'   => isset($meta[4]) ? (float)$meta[4] : null, // As float!
+                        ];
+                    }
+                    // Return value.
+                    else {
+                        $values[$key] = $this->_unserialize($value, (int)$meta[2]);
                     }
                 }
 

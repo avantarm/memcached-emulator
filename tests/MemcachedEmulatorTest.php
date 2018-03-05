@@ -358,6 +358,13 @@ class MemcachedEmulatorTest extends TestCase
             $this->assertTrue(static::$m->set('key1', $value), \sprintf('Failed on "%s" value.', $type));
             $this->assertEquals($value, static::$m->get('key1'));
             $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+
+            // Test case
+            $actual = static::$m->get('key1', null, MemcachedEmulator::GET_EXTENDED);
+            $this->assertInternalType('array', $actual);
+            $this->assertArrayHasKey('value', $actual);
+            $this->assertArrayHasKey('cas', $actual);
+            $this->assertEquals($value, $actual['value']);
         }
 
         $this->assertFalse(static::$m->get('key2'));
@@ -405,6 +412,9 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetAllKeys()
     {
+        // Delete all existing keys first
+        static::$m->deleteMulti(static::$m->getAllKeys());
+
         $this->assertTrue(static::$m->set('key1', '1'));
         $this->assertTrue(static::$m->set('key2', '2'));
 
@@ -433,6 +443,21 @@ class MemcachedEmulatorTest extends TestCase
         $this->assertTrue(static::$m->setMulti($values));
         $this->assertEqualsCanonicalize($values, static::$m->getMulti($keys));
         $this->assertEquals(array_fill_keys($keys, true), static::$m->deleteMulti($keys));
+
+        // Test Preserve order: actually always
+
+        // Test CAS
+        $this->assertTrue(static::$m->setMulti($values));
+
+        $actual = static::$m->getMulti($keys, MemcachedEmulator::GET_EXTENDED);
+        $this->assertInternalType('array', $actual);
+
+        foreach ($values as $key => $value) {
+            $this->assertArrayHasKey($key, $actual);
+            $this->assertArrayHasKey('value', $actual[$key]);
+            $this->assertArrayHasKey('cas', $actual[$key]);
+            $this->assertEquals($value, $actual[$key]['value']);
+        }
     }
 
     /**
