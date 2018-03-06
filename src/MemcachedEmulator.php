@@ -396,7 +396,7 @@ class MemcachedEmulator
      */
     public function addByKey($server_key, $key, $value, $expiration = 0)
     {
-        $key = $this->_getKey($key);
+        $real_key = $this->_getKey($key);
         $expiration = (int)$expiration;
 
         if (!$this->_serialize($value, $flags, $bytes)) {
@@ -404,7 +404,7 @@ class MemcachedEmulator
         }
 
         // add <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
-        if (false !== $response = $this->_write($server_key, "add $key $flags $expiration $bytes\r\n$value")) {
+        if (false !== $response = $this->_write($server_key, "add $real_key $flags $expiration $bytes\r\n$value")) {
             // Valid response.
             if (isset(self::STORE_RESPONSES[$response])) {
                 $this->result_code = self::STORE_RESPONSES[$response];
@@ -513,17 +513,16 @@ class MemcachedEmulator
      */
     public function appendByKey($server_key, $key, $value)
     {
-        $key = $this->_getKey($key);
-
         if (!\is_scalar($value)) {
             return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
+        $real_key = $this->_getKey($key);
         $bytes = \strlen($value);
 
         // append <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
         // flags and exptime are ignored.
-        if (false !== $response = $this->_write($server_key, "append $key 0 0 $bytes\r\n$value")) {
+        if (false !== $response = $this->_write($server_key, "append $real_key 0 0 $bytes\r\n$value")) {
             // Valid response.
             if (isset(self::STORE_RESPONSES[$response])) {
                 $this->result_code = self::STORE_RESPONSES[$response];
@@ -574,7 +573,7 @@ class MemcachedEmulator
      */
     public function casByKey($cas_token, $server_key, $key, $value, $expiration = 0)
     {
-        $key = $this->_getKey($key);
+        $real_key = $this->_getKey($key);
         $expiration = (int)$expiration;
 
         if (!$this->_serialize($value, $flags, $bytes)) {
@@ -583,7 +582,7 @@ class MemcachedEmulator
 
         // cas <key> <flags> <exptime> <bytes> <cas unique> [noreply]\r\n
         if (false !== $response = $this->_write($server_key,
-                "cas $key $flags $expiration $bytes $cas_token\r\n$value")) {
+                "cas $real_key $flags $expiration $bytes $cas_token\r\n$value")) {
             // Valid response.
             if (isset(self::STORE_RESPONSES[$response])) {
                 $this->result_code = self::STORE_RESPONSES[$response];
@@ -697,8 +696,10 @@ class MemcachedEmulator
             throw new \BadMethodCallException(\sprintf('%s does not emulate $time param.', __METHOD__));
         }
 
+        $real_key = $this->_getKey($key);
+
         // delete <key> [<time>] [noreply]\r\n
-        if (false !== $response = $this->_write($server_key, "delete $key")) {
+        if (false !== $response = $this->_write($server_key, "delete $real_key")) {
             // Valid response.
             if (isset(self::DELETE_RESPONSES[$response])) {
                 $this->result_code = self::DELETE_RESPONSES[$response];
@@ -1391,7 +1392,7 @@ class MemcachedEmulator
      */
     public function prependByKey($server_key, $key, $value)
     {
-        $key = $this->_getKey($key);
+        $real_key = $this->_getKey($key);
 
         if (!\is_scalar($value)) {
             return $this->_return(false, self::RES_PAYLOAD_FAILURE);
@@ -1401,7 +1402,7 @@ class MemcachedEmulator
 
         // prepend <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
         // flags and exptime are ignored.
-        if (false !== $response = $this->_write($server_key, "prepend $key 0 0 $bytes\r\n$value")) {
+        if (false !== $response = $this->_write($server_key, "prepend $real_key 0 0 $bytes\r\n$value")) {
             // Valid response.
             if (isset(self::STORE_RESPONSES[$response])) {
                 $this->result_code = self::STORE_RESPONSES[$response];
@@ -1464,7 +1465,7 @@ class MemcachedEmulator
      */
     public function replaceByKey($server_key, $key, $value, $expiration = 0)
     {
-        $key = $this->_getKey($key);
+        $real_key = $this->_getKey($key);
         $expiration = (int)$expiration;
 
         if (!$this->_serialize($value, $flags, $bytes)) {
@@ -1472,7 +1473,7 @@ class MemcachedEmulator
         }
 
         // replace <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
-        if (false !== $response = $this->_write($server_key, "replace $key $flags $expiration $bytes\r\n$value")) {
+        if (false !== $response = $this->_write($server_key, "replace $real_key $flags $expiration $bytes\r\n$value")) {
             // Valid response.
             if (isset(self::STORE_RESPONSES[$response])) {
                 $this->result_code = self::STORE_RESPONSES[$response];
@@ -1534,7 +1535,7 @@ class MemcachedEmulator
      */
     public function setByKey($server_key, $key, $value, $expiration = 0)
     {
-        $key = $this->_getKey($key);
+        $real_key = $this->_getKey($key);
         $expiration = (int)$expiration;
 
         if (!$this->_serialize($value, $flags, $bytes)) {
@@ -1542,7 +1543,7 @@ class MemcachedEmulator
         }
 
         // set <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
-        if (false !== $response = $this->_write($server_key, "set $key $flags $expiration $bytes\r\n$value")) {
+        if (false !== $response = $this->_write($server_key, "set $real_key $flags $expiration $bytes\r\n$value")) {
             // Valid response.
             if (isset(self::STORE_RESPONSES[$response])) {
                 $this->result_code = self::STORE_RESPONSES[$response];
@@ -1748,11 +1749,11 @@ class MemcachedEmulator
      */
     public function touchByKey($server_key, $key, $expiration)
     {
-        $key = $this->_getKey($key);
+        $real_key = $this->_getKey($key);
         $expiration = (int)$expiration;
 
         // touch <key> <exptime> [noreply]\r\n
-        if (false !== $response = $this->_write($server_key, "touch $key $expiration")) {
+        if (false !== $response = $this->_write($server_key, "touch $real_key $expiration")) {
             // Valid response.
             if (isset(self::TOUCH_RESPONSES[$response])) {
                 $this->result_code = self::TOUCH_RESPONSES[$response];
