@@ -356,6 +356,7 @@ class MemcachedEmulator
             }
             $this->setOption(self::OPT_SERIALIZER, $serializer);
 
+            /** @noinspection UnnecessaryCastingInspection */
             if ('' === $compression_type = (string)\ini_get('memcached.compression_type')) {
                 $compression_type = 'fastlz';
             }
@@ -514,7 +515,7 @@ class MemcachedEmulator
     {
         $key = $this->_getKey($key);
 
-        if (!is_scalar($value)) {
+        if (!\is_scalar($value)) {
             return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
@@ -631,7 +632,7 @@ class MemcachedEmulator
         $real_key = $this->_getKey($key);
         $expiry = (int)$expiry;
 
-        if (!is_scalar($offset)) {
+        if (!\is_scalar($offset)) {
             return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
@@ -693,7 +694,7 @@ class MemcachedEmulator
     {
         if ($time !== 0) {
             /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-            throw new \BadMethodCallException(sprintf('%s does not emulate $time param.', __METHOD__));
+            throw new \BadMethodCallException(\sprintf('%s does not emulate $time param.', __METHOD__));
         }
 
         // delete <key> [<time>] [noreply]\r\n
@@ -745,7 +746,7 @@ class MemcachedEmulator
     {
         if ($time !== 0) {
             /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
-            throw new \BadMethodCallException(sprintf('%s does not emulate $time param.', __METHOD__));
+            throw new \BadMethodCallException(\sprintf('%s does not emulate $time param.', __METHOD__));
         }
 
         // Set initial result.
@@ -1304,7 +1305,7 @@ class MemcachedEmulator
         $real_key = $this->_getKey($key);
         $expiry = (int)$expiry;
 
-        if (!is_scalar($offset)) {
+        if (!\is_scalar($offset)) {
             return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
@@ -1392,7 +1393,7 @@ class MemcachedEmulator
     {
         $key = $this->_getKey($key);
 
-        if (!is_scalar($value)) {
+        if (!\is_scalar($value)) {
             return $this->_return(false, self::RES_PAYLOAD_FAILURE);
         }
 
@@ -1904,7 +1905,7 @@ class MemcachedEmulator
         if ($response === self::RESPONSE_ERROR) {
             /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
             throw new \RuntimeException(
-                sprintf(
+                \sprintf(
                     '%s on sending command "%s" to server "%s".',
                     self::RESPONSE_ERROR,
                     $command,
@@ -1913,10 +1914,10 @@ class MemcachedEmulator
             );
         }
 
-        if (preg_match('/' . self::RESPONSE_CLIENT_ERROR . ' (.*)\R?/mu', $response, $error) > 0) {
+        if (\preg_match('/' . self::RESPONSE_CLIENT_ERROR . ' (.*)\R?/mu', $response, $error) > 0) {
             /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
             throw new \RuntimeException(
-                sprintf(
+                \sprintf(
                     '%s error "%s" on sending command "%s" to server "%s".',
                     self::RESPONSE_CLIENT_ERROR,
                     $error[1],
@@ -1926,10 +1927,10 @@ class MemcachedEmulator
             );
         }
 
-        if (preg_match('/' . self::RESPONSE_SERVER_ERROR . ' (.*)\R?/mu', $response, $error) > 0) {
+        if (\preg_match('/' . self::RESPONSE_SERVER_ERROR . ' (.*)\R?/mu', $response, $error) > 0) {
             /** @noinspection ExceptionsAnnotatingAndHandlingInspection */
             throw new \RuntimeException(
-                sprintf(
+                \sprintf(
                     '%s error "%s" on sending command "%s" to server "%s".',
                     self::RESPONSE_SERVER_ERROR,
                     $error[1],
