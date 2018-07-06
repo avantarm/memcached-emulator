@@ -899,8 +899,8 @@ class MemcachedEmulator
                         if (\strpos($response, self::RESPONSE_ITEM) === 0) {
                             list(, $key) = \explode(' ', $response);
 
-                            // Collect unique keys.
-                            $keys[$key] = true;
+                            // Collect unique keys. Strip slashes from key.
+                            $keys[\stripslashes($key)] = true;
                         }
 
                         // Read next line.

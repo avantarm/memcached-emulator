@@ -946,6 +946,7 @@ class MemcachedEmulatorTest extends TestCase
             'array'       => ['a'],
             'object'      => new \stdClass(),
             'text'        => \file_get_contents(__FILE__),
+            __METHOD__ => __METHOD__,
         ];
     }
 
