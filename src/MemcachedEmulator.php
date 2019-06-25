@@ -219,40 +219,54 @@ class MemcachedEmulator
         self::RESPONSE_VERSION,
     ];
 
-    public const _STORE_RESPONSES = [
+    public const _STORE_SIGNALS = [
         self::RESPONSE_STORED     => self::RES_SUCCESS,
         self::RESPONSE_NOT_STORED => self::RES_NOTSTORED,
         self::RESPONSE_EXISTS     => self::RES_DATA_EXISTS,
         self::RESPONSE_NOT_FOUND  => self::RES_NOTFOUND,
     ];
 
-    public const _RETRIEVE_RESPONSES = [
+    public const _RETRIEVE_SIGNALS = [
         self::RESPONSE_END => self::RES_NOTFOUND,
     ];
 
-    public const _DELETE_RESPONSES = [
+    public const _DELETE_SIGNALS = [
         self::RESPONSE_DELETED   => self::RES_SUCCESS,
         self::RESPONSE_NOT_FOUND => self::RES_NOTFOUND,
     ];
 
-    public const _INCR_DECR_RESPONSES = [
-        self::RESPONSE_NOT_FOUND,
+    public const _INCR_SIGNALS = [
+        self::RESPONSE_NOT_FOUND => self::RES_NOTFOUND,
+        self::RESPONSE_STORED    => self::RES_SUCCESS,
     ];
 
-    public const _TOUCH_RESPONSES = [
+    public const _DECR_SIGNALS = [
+        self::RESPONSE_NOT_FOUND => self::RES_NOTFOUND,
+        self::RESPONSE_STORED    => self::RES_SUCCESS,
+    ];
+
+    public const _TOUCH_SIGNALS = [
         self::RESPONSE_TOUCHED   => self::RES_SUCCESS,
         self::RESPONSE_NOT_FOUND => self::RES_NOTFOUND,
     ];
 
-    public const _STAT_RESPONSES = [
+    public const _STAT_SIGNALS = [
         self::RESPONSE_END => self::RES_SUCCESS,
     ];
 
+    public const _FLUSH_ALL_SIGNALS = [
+        self::RESPONSE_OK => self::RES_SUCCESS,
+    ];
+
     public const _SIGNALS = [
-        'add'    => self::_STORE_RESPONSES,
-        'append' => self::_STORE_RESPONSES,
-        'stat'   => self::_STAT_RESPONSES,
-        'stats'  => self::_STAT_RESPONSES,
+        'add'       => self::_STORE_SIGNALS,
+        'append'    => self::_STORE_SIGNALS,
+        'stat'      => self::_STAT_SIGNALS,
+        'stats'     => self::_STAT_SIGNALS,
+        'decr'      => self::_DECR_SIGNALS,
+        'incr'      => self::_INCR_SIGNALS,
+        'delete'    => self::_DELETE_SIGNALS,
+        'flush_all' => self::_FLUSH_ALL_SIGNALS,
     ];
 
     /**
@@ -444,8 +458,8 @@ class MemcachedEmulator
         // add <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
         if (false !== $response = $this->_query("add $real_key $flags $expiration $bytes\r\n$value", $server_key)) {
             // Valid response.
-            if (isset(self::_STORE_RESPONSES[$response])) {
-                $this->result_code = self::_STORE_RESPONSES[$response];
+            if (isset(self::_STORE_SIGNALS[$response])) {
+                $this->result_code = self::_STORE_SIGNALS[$response];
                 $this->result_message = '';
 
                 return $this->result_code === self::RES_SUCCESS;
@@ -557,8 +571,8 @@ class MemcachedEmulator
         // flags and exptime are ignored.
         if (false !== $response = $this->_query("append $real_key 0 0 $bytes\r\n$value", $server_key)) {
             // Valid response.
-            if (isset(self::_STORE_RESPONSES[$response])) {
-                $this->result_code = self::_STORE_RESPONSES[$response];
+            if (isset(self::_STORE_SIGNALS[$response])) {
+                $this->result_code = self::_STORE_SIGNALS[$response];
                 $this->result_message = '';
 
                 return $this->result_code === self::RES_SUCCESS;
@@ -612,17 +626,15 @@ class MemcachedEmulator
         }
 
         // cas <key> <flags> <exptime> <bytes> <cas unique> [noreply]\r\n
-        if (false !== $response = $this->_write($server_key,
-                "cas $real_key $flags $expiration $bytes $cas_token\r\n$value")) {
+        if (false !== $response = $this->_query("cas $real_key $flags $expiration $bytes $cas_token\r\n$value",
+                $server_key)) {
             // Valid response.
-            if (isset(self::_STORE_RESPONSES[$response])) {
-                $this->result_code = self::_STORE_RESPONSES[$response];
+            if (isset(self::_STORE_SIGNALS[$response])) {
+                $this->result_code = self::_STORE_SIGNALS[$response];
                 $this->result_message = '';
 
                 return $this->result_code === self::RES_SUCCESS;
             }
-
-            $this->_checkInvalidResponse($server_key, 'cas', $response);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -667,23 +679,21 @@ class MemcachedEmulator
         }
 
         // decr <key> <value> [noreply]\r\n
-        if (false !== $response = $this->_write($server_key, "decr $real_key $offset")) {
+        if (false !== $response = $this->_query("decr $real_key $offset", $server_key)) {
             // Not found? Use initial value.
             if ($response === self::RESPONSE_NOT_FOUND) {
                 // If the operation would decrease the value below 0, the new value will be 0.
                 $value = \max(0, $initial_value - $offset);
+
                 return $this->setByKey($server_key, $key, $initial_value, $expiry) ? $value : false;
             }
 
             // Another invalid response.
-            if (isset(self::_STORE_RESPONSES[$response])) {
+            if (isset(self::_STORE_SIGNALS[$response])) {
 
                 // Another response
-                return $this->_return(false, self::_STORE_RESPONSES[$response]);
+                return $this->_return(false, self::_STORE_SIGNALS[$response]);
             }
-
-            // Check possible invalid response.
-            $this->_checkInvalidResponse($server_key, 'decr', $response);
         }
 
         return (int)$response;
@@ -726,16 +736,14 @@ class MemcachedEmulator
         $real_key = $this->_getKey($key);
 
         // delete <key> [<time>] [noreply]\r\n
-        if (false !== $response = $this->_write($server_key, "delete $real_key")) {
+        if (false !== $response = $this->_query("delete $real_key", $server_key)) {
             // Valid response.
-            if (isset(self::_DELETE_RESPONSES[$response])) {
-                $this->result_code = self::_DELETE_RESPONSES[$response];
+            if (isset(self::_DELETE_SIGNALS[$response])) {
+                $this->result_code = self::_DELETE_SIGNALS[$response];
                 $this->result_message = '';
 
                 return $this->result_code === self::RES_SUCCESS;
             }
-
-            $this->_checkInvalidResponse($server_key, 'delete', $response);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -834,16 +842,12 @@ class MemcachedEmulator
     {
         foreach (\array_keys($this->servers) as $server_key) {
             // <flush_all[ delay]>
-            if ((false !== $response = $this->_write($server_key, 'flush_all' . ($delay ? ' ' . (int)$delay : null)))
-                &&
-                ($response !== self::RESPONSE_OK)
-
-            ) {
-                $this->_checkInvalidResponse(null, 'flush_all', $response);
+            if (false !== $this->_query('flush_all' . ($delay ? ' ' . (int)$delay : null), $server_key)) {
+                return $this->_return(true);
             }
         }
 
-        return $this->_return(true);
+        return false;
     }
 
     /**
@@ -890,9 +894,10 @@ class MemcachedEmulator
 
                 foreach ($slabs as $slab_id => $slab_number) {
                     // 0 means no limit of items per slab, but let's pass correct $slab_number
-                    if (false !== $response = $this->_queryLines("stats cachedump $slab_id $slab_number", $server_key)) {
+                    if (false !== $response = $this->_queryLines("stats cachedump $slab_id $slab_number",
+                            $server_key)) {
                         foreach ($response as $item) {
-                            [, $key, ] = \explode(' ', $item, 3);
+                            [, $key,] = \explode(' ', $item, 3);
 
                             $keys[] = $key;
                         }
@@ -1091,6 +1096,8 @@ class MemcachedEmulator
                     // Read key meta data.
                     $meta = \explode(' ', $response);
 
+                    var_dump($meta);
+
                     /*
                      * $meta[1] holds key
                      * $meta[2] holds flags
@@ -1242,16 +1249,11 @@ class MemcachedEmulator
 
         foreach (\array_keys($this->servers) as $server_key) {
             // stats
-            if (false !== $response = $this->_write($server_key, 'stats')) {
-                $this->_checkInvalidResponse($server_key, 'stats', $response);
-
-                while ($response !== self::RESPONSE_END) {
-                    if (\preg_match('/^STAT\s(\w+)\s(.*)/', $response, $matches)) {
+            if (false !== $response = $this->_queryLines('stats', $server_key)) {
+                foreach ($response as $line) {
+                    if (\preg_match('/^STAT\s(\w+)\s(.*)/', $line, $matches)) {
                         $stats[$server_key][$matches[1]] = $matches[2];
                     }
-
-                    // Read next line.
-                    $response = $this->_read($server_key);
                 }
             }
         }
@@ -1335,10 +1337,10 @@ class MemcachedEmulator
             }
 
             // Another invalid response.
-            if (isset(self::_STORE_RESPONSES[$response])) {
+            if (isset(self::_STORE_SIGNALS[$response])) {
 
                 // Another response
-                return $this->_return(false, self::_STORE_RESPONSES[$response]);
+                return $this->_return(false, self::_STORE_SIGNALS[$response]);
             }
 
             // Check possible invalid response.
@@ -1417,8 +1419,8 @@ class MemcachedEmulator
         // flags and exptime are ignored.
         if (false !== $response = $this->_write($server_key, "prepend $real_key 0 0 $bytes\r\n$value")) {
             // Valid response.
-            if (isset(self::_STORE_RESPONSES[$response])) {
-                $this->result_code = self::_STORE_RESPONSES[$response];
+            if (isset(self::_STORE_SIGNALS[$response])) {
+                $this->result_code = self::_STORE_SIGNALS[$response];
                 $this->result_message = '';
 
                 return $this->result_code === self::RES_SUCCESS;
@@ -1488,8 +1490,8 @@ class MemcachedEmulator
         // replace <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
         if (false !== $response = $this->_write($server_key, "replace $real_key $flags $expiration $bytes\r\n$value")) {
             // Valid response.
-            if (isset(self::_STORE_RESPONSES[$response])) {
-                $this->result_code = self::_STORE_RESPONSES[$response];
+            if (isset(self::_STORE_SIGNALS[$response])) {
+                $this->result_code = self::_STORE_SIGNALS[$response];
                 $this->result_message = '';
 
                 return $this->result_code === self::RES_SUCCESS;
@@ -1558,8 +1560,8 @@ class MemcachedEmulator
         // set <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
         if (false !== $response = $this->_write($server_key, "set $real_key $flags $expiration $bytes\r\n$value")) {
             // Valid response.
-            if (isset(self::_STORE_RESPONSES[$response])) {
-                $this->result_code = self::_STORE_RESPONSES[$response];
+            if (isset(self::_STORE_SIGNALS[$response])) {
+                $this->result_code = self::_STORE_SIGNALS[$response];
                 $this->result_message = '';
 
                 return $this->result_code === self::RES_SUCCESS;
@@ -1767,8 +1769,8 @@ class MemcachedEmulator
         // touch <key> <exptime> [noreply]\r\n
         if (false !== $response = $this->_write($server_key, "touch $real_key $expiration")) {
             // Valid response.
-            if (isset(self::_TOUCH_RESPONSES[$response])) {
-                $this->result_code = self::_TOUCH_RESPONSES[$response];
+            if (isset(self::_TOUCH_SIGNALS[$response])) {
+                $this->result_code = self::_TOUCH_SIGNALS[$response];
                 $this->result_message = '';
 
                 return $this->result_code === self::RES_SUCCESS;
