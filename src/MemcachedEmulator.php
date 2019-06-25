@@ -203,22 +203,6 @@ class MemcachedEmulator
     public const RESPONSE_CLIENT_ERROR = 'CLIENT_ERROR';
     public const RESPONSE_SERVER_ERROR = 'SERVER_ERROR';
 
-    /**
-     * Transfer end signals.
-     */
-    public const _END_SIGNALS = [
-        self::RESPONSE_OK,
-        self::RESPONSE_STORED,
-        self::RESPONSE_NOT_FOUND,
-        self::RESPONSE_END,
-        self::RESPONSE_DELETED,
-        self::RESPONSE_EXISTS,
-        self::RESPONSE_ERROR,
-        self::RESPONSE_RESET,
-        self::RESPONSE_NOT_STORED,
-        self::RESPONSE_VERSION,
-    ];
-
     public const _STORE_SIGNALS = [
         self::RESPONSE_STORED     => self::RES_SUCCESS,
         self::RESPONSE_NOT_STORED => self::RES_NOTSTORED,
@@ -227,7 +211,7 @@ class MemcachedEmulator
     ];
 
     public const _RETRIEVE_SIGNALS = [
-        self::RESPONSE_END => self::RES_NOTFOUND,
+        self::RESPONSE_END => self::RES_SUCCESS,
     ];
 
     public const _DELETE_SIGNALS = [
@@ -261,12 +245,18 @@ class MemcachedEmulator
     public const _SIGNALS = [
         'add'       => self::_STORE_SIGNALS,
         'append'    => self::_STORE_SIGNALS,
+        'prepend'   => self::_STORE_SIGNALS,
+        'replace'   => self::_STORE_SIGNALS,
+        'set'       => self::_STORE_SIGNALS,
         'stat'      => self::_STAT_SIGNALS,
         'stats'     => self::_STAT_SIGNALS,
         'decr'      => self::_DECR_SIGNALS,
         'incr'      => self::_INCR_SIGNALS,
         'delete'    => self::_DELETE_SIGNALS,
         'flush_all' => self::_FLUSH_ALL_SIGNALS,
+        'get'       => self::_RETRIEVE_SIGNALS,
+        'gets'      => self::_RETRIEVE_SIGNALS,
+        'touch'     => self::_TOUCH_SIGNALS,
     ];
 
     /**
@@ -456,14 +446,13 @@ class MemcachedEmulator
         }
 
         // add <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
-        if (false !== $response = $this->_query("add $real_key $flags $expiration $bytes\r\n$value", $server_key)) {
+        if ((false !== $response = $this->_query("add $real_key $flags $expiration $bytes\r\n$value", $server_key))
+            &&
             // Valid response.
-            if (isset(self::_STORE_SIGNALS[$response])) {
-                $this->result_code = self::_STORE_SIGNALS[$response];
-                $this->result_message = '';
-
-                return $this->result_code === self::RES_SUCCESS;
-            }
+            isset(self::_STORE_SIGNALS[$response])
+        ) {
+            return $this->_return(self::_STORE_SIGNALS[$response] === self::RES_SUCCESS,
+                self::_STORE_SIGNALS[$response]);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -569,14 +558,13 @@ class MemcachedEmulator
 
         // append <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
         // flags and exptime are ignored.
-        if (false !== $response = $this->_query("append $real_key 0 0 $bytes\r\n$value", $server_key)) {
+        if ((false !== $response = $this->_query("append $real_key 0 0 $bytes\r\n$value", $server_key))
+            &&
             // Valid response.
-            if (isset(self::_STORE_SIGNALS[$response])) {
-                $this->result_code = self::_STORE_SIGNALS[$response];
-                $this->result_message = '';
-
-                return $this->result_code === self::RES_SUCCESS;
-            }
+            isset(self::_STORE_SIGNALS[$response])
+        ) {
+            return $this->_return(self::_STORE_SIGNALS[$response] === self::RES_SUCCESS,
+                self::_STORE_SIGNALS[$response]);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -626,15 +614,14 @@ class MemcachedEmulator
         }
 
         // cas <key> <flags> <exptime> <bytes> <cas unique> [noreply]\r\n
-        if (false !== $response = $this->_query("cas $real_key $flags $expiration $bytes $cas_token\r\n$value",
-                $server_key)) {
+        if ((false !== $response = $this->_query("cas $real_key $flags $expiration $bytes $cas_token\r\n$value",
+                    $server_key))
+            &&
             // Valid response.
-            if (isset(self::_STORE_SIGNALS[$response])) {
-                $this->result_code = self::_STORE_SIGNALS[$response];
-                $this->result_message = '';
-
-                return $this->result_code === self::RES_SUCCESS;
-            }
+            isset(self::_STORE_SIGNALS[$response])
+        ) {
+            return $this->_return(self::_STORE_SIGNALS[$response] === self::RES_SUCCESS,
+                self::_STORE_SIGNALS[$response]);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -736,14 +723,13 @@ class MemcachedEmulator
         $real_key = $this->_getKey($key);
 
         // delete <key> [<time>] [noreply]\r\n
-        if (false !== $response = $this->_query("delete $real_key", $server_key)) {
+        if ((false !== $response = $this->_query("delete $real_key", $server_key))
+            &&
             // Valid response.
-            if (isset(self::_DELETE_SIGNALS[$response])) {
-                $this->result_code = self::_DELETE_SIGNALS[$response];
-                $this->result_message = '';
-
-                return $this->result_code === self::RES_SUCCESS;
-            }
+            isset(self::_DELETE_SIGNALS[$response])
+        ) {
+            return $this->_return(self::_DELETE_SIGNALS[$response] === self::RES_SUCCESS,
+                self::_DELETE_SIGNALS[$response]);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -803,6 +789,8 @@ class MemcachedEmulator
         return $results;
     }
 
+    /** @noinspection PhpDocSignatureInspection */
+
     /**
      * (PECL memcached &gt;= 0.1.0)<br/>
      * Fetch the next result
@@ -816,6 +804,8 @@ class MemcachedEmulator
     {
         throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
+
+    /** @noinspection PhpDocSignatureInspection */
 
     /**
      * (PECL memcached &gt;= 0.1.0)<br/>
@@ -884,22 +874,28 @@ class MemcachedEmulator
             // Collect server slabs.
             $slabs = [];
 
-            if (false !== $response = $this->_queryLines('stats items', $server_key)) {
-                foreach ($response as $item) {
+            if (false !== $response = $this->_query('stats items', $server_key, $socket)) {
+                while ($response !== self::RESPONSE_END) {
                     // Get only slabs with items: "STAT items:1:number 2"
-                    if (\preg_match('/^STAT items:(\d+):number (\d+)$/', $item, $matches) && !empty($matches[2])) {
+                    if (\preg_match('/^STAT items:(\d+):number (\d+)$/', $response, $matches) && !empty($matches[2])) {
                         $slabs[$matches[1]] = $matches[2];
                     }
+
+                    // Read next
+                    $response = \substr(\fgets($socket), 0, -2);
                 }
 
                 foreach ($slabs as $slab_id => $slab_number) {
                     // 0 means no limit of items per slab, but let's pass correct $slab_number
-                    if (false !== $response = $this->_queryLines("stats cachedump $slab_id $slab_number",
-                            $server_key)) {
-                        foreach ($response as $item) {
-                            [, $key,] = \explode(' ', $item, 3);
+                    if (false !== $response = $this->_query("stats cachedump $slab_id $slab_number", $server_key,
+                            $socket)) {
+                        while ($response !== self::RESPONSE_END) {
+                            [, $key,] = \explode(' ', $response, 3);
 
                             $keys[] = $key;
+
+                            // Read next
+                            $response = \substr(\fgets($socket), 0, -2);
                         }
                     }
                 }
@@ -929,7 +925,7 @@ class MemcachedEmulator
 
         $cas = $flags && ($flags & self::GET_EXTENDED);
 
-        if (false !== $response = $this->_write($server_key, ($cas ? 'gets' : 'get') . " $real_key", $socket)) {
+        if (false !== $response = $this->_query(($cas ? 'gets' : 'get') . " $real_key", $server_key, $socket)) {
             // Not found
             if ($response === self::RESPONSE_END) {
 
@@ -957,15 +953,14 @@ class MemcachedEmulator
 
             // VALUE <key> <flags> <bytes> [<cas unique>]
             if (\strpos($response, self::RESPONSE_VALUE) === 0) {
-                // Read key meta data.
-                $meta = \explode(' ', $response);
-
                 /*
+                 * Read key meta data:
                  * $meta[1] holds key
                  * $meta[2] holds flags
                  * $meta[3] holds bytes
                  * $meta[4] holds cas token (if requested via 'gets' command)
                  */
+                $meta = \explode(' ', $response);
 
                 $value = '';
 
@@ -1001,12 +996,12 @@ class MemcachedEmulator
 
                 return $this->_unserialize($value, (int)$meta[2]);
             }
-
-            $this->_checkInvalidResponse($server_key, 'get', $response);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
     }
+
+    /** @noinspection PhpDocSignatureInspection */
 
     /**
      * (PECL memcached &gt;= 0.1.0)<br/>
@@ -1026,6 +1021,8 @@ class MemcachedEmulator
     ) {
         throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
+
+    /** @noinspection PhpDocSignatureInspection */
 
     /**
      * (PECL memcached &gt;= 0.1.0)<br/>
@@ -1081,7 +1078,8 @@ class MemcachedEmulator
 
         $cas = ($flags && ($flags & self::GET_EXTENDED));
 
-        if (false !== $response = $this->_write($server_key, ($cas ? 'gets' : 'get') . ' ' . \implode(' ', $real_keys))
+        if (false !== $response = $this->_query(($cas ? 'gets' : 'get') . ' ' . \implode(' ', $real_keys), $server_key,
+                $socket)
         ) {
             // No keys.
             if ($response === self::RESPONSE_END) {
@@ -1096,8 +1094,6 @@ class MemcachedEmulator
                     // Read key meta data.
                     $meta = \explode(' ', $response);
 
-                    var_dump($meta);
-
                     /*
                      * $meta[1] holds key
                      * $meta[2] holds flags
@@ -1109,7 +1105,7 @@ class MemcachedEmulator
 
                     if ($meta[3]) {
                         while (\strlen($value) <= $meta[3]) {
-                            $value .= \fgets($this->sockets[$server_key]);
+                            $value .= \fgets($socket);
                         }
 
                         // Trim last \r\n
@@ -1134,10 +1130,8 @@ class MemcachedEmulator
                     }
                 }
 
-                $this->_checkInvalidResponse($server_key, 'get', $response);
-
                 // Next VALUE line or final END.
-                if (self::RESPONSE_END === $response = $this->_read($server_key)) {
+                if (self::RESPONSE_END === $response = \substr(\fgets($socket), 0, -2)) {
                     break;
                 }
             }
@@ -1249,11 +1243,14 @@ class MemcachedEmulator
 
         foreach (\array_keys($this->servers) as $server_key) {
             // stats
-            if (false !== $response = $this->_queryLines('stats', $server_key)) {
-                foreach ($response as $line) {
-                    if (\preg_match('/^STAT\s(\w+)\s(.*)/', $line, $matches)) {
+            if (false !== $response = $this->_query('stats', $server_key, $socket)) {
+                while ($response !== self::RESPONSE_END) {
+                    if (\preg_match('/^STAT\s(\w+)\s(.*)/', $response, $matches)) {
                         $stats[$server_key][$matches[1]] = $matches[2];
                     }
+
+                    // Read next
+                    $response = \substr(\fgets($socket), 0, -2);
                 }
             }
         }
@@ -1273,7 +1270,7 @@ class MemcachedEmulator
         $results = [];
 
         foreach ($this->servers as $server_key => $tmp) {
-            if ((false !== $response = $this->_write($server_key, 'version'))
+            if ((false !== $response = $this->_query('version', $server_key))
                 &&
                 \strpos($response, self::RESPONSE_VERSION) === 0
             ) {
@@ -1329,7 +1326,7 @@ class MemcachedEmulator
         }
 
         // incr <key> <value> [noreply]\r\n
-        if (false !== $response = $this->_write($server_key, "incr $real_key $offset")) {
+        if (false !== $response = $this->_query("incr $real_key $offset", $server_key)) {
             // Not found? Use initial value.
             if ($response === self::RESPONSE_NOT_FOUND) {
                 $value = $initial_value + $offset;
@@ -1342,9 +1339,6 @@ class MemcachedEmulator
                 // Another response
                 return $this->_return(false, self::_STORE_SIGNALS[$response]);
             }
-
-            // Check possible invalid response.
-            $this->_checkInvalidResponse($server_key, 'incr', $response);
         }
 
         return (int)$response;
@@ -1417,16 +1411,13 @@ class MemcachedEmulator
 
         // prepend <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
         // flags and exptime are ignored.
-        if (false !== $response = $this->_write($server_key, "prepend $real_key 0 0 $bytes\r\n$value")) {
+        if ((false !== $response = $this->_query("prepend $real_key 0 0 $bytes\r\n$value", $server_key))
+            &&
             // Valid response.
-            if (isset(self::_STORE_SIGNALS[$response])) {
-                $this->result_code = self::_STORE_SIGNALS[$response];
-                $this->result_message = '';
-
-                return $this->result_code === self::RES_SUCCESS;
-            }
-
-            $this->_checkInvalidResponse($server_key, 'prepend', $response);
+            isset(self::_STORE_SIGNALS[$response])
+        ) {
+            return $this->_return(self::_STORE_SIGNALS[$response] === self::RES_SUCCESS,
+                self::_STORE_SIGNALS[$response]);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -1488,16 +1479,13 @@ class MemcachedEmulator
         }
 
         // replace <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
-        if (false !== $response = $this->_write($server_key, "replace $real_key $flags $expiration $bytes\r\n$value")) {
+        if ((false !== $response = $this->_query("replace $real_key $flags $expiration $bytes\r\n$value", $server_key))
+            &&
             // Valid response.
-            if (isset(self::_STORE_SIGNALS[$response])) {
-                $this->result_code = self::_STORE_SIGNALS[$response];
-                $this->result_message = '';
-
-                return $this->result_code === self::RES_SUCCESS;
-            }
-
-            $this->_checkInvalidResponse($server_key, 'replace', $response);
+            isset(self::_STORE_SIGNALS[$response])
+        ) {
+            return $this->_return(self::_STORE_SIGNALS[$response] === self::RES_SUCCESS,
+                self::_STORE_SIGNALS[$response]);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -1558,16 +1546,13 @@ class MemcachedEmulator
         }
 
         // set <key> <flags> <exptime> <bytes> [noreply]\r\n<value>\r\n
-        if (false !== $response = $this->_write($server_key, "set $real_key $flags $expiration $bytes\r\n$value")) {
+        if ((false !== $response = $this->_query("set $real_key $flags $expiration $bytes\r\n$value", $server_key))
+            &&
             // Valid response.
-            if (isset(self::_STORE_SIGNALS[$response])) {
-                $this->result_code = self::_STORE_SIGNALS[$response];
-                $this->result_message = '';
-
-                return $this->result_code === self::RES_SUCCESS;
-            }
-
-            $this->_checkInvalidResponse($server_key, 'set', $response);
+            isset(self::_STORE_SIGNALS[$response])
+        ) {
+            return $this->_return(self::_STORE_SIGNALS[$response] === self::RES_SUCCESS,
+                self::_STORE_SIGNALS[$response]);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -1767,16 +1752,13 @@ class MemcachedEmulator
         $expiration = (int)$expiration;
 
         // touch <key> <exptime> [noreply]\r\n
-        if (false !== $response = $this->_write($server_key, "touch $real_key $expiration")) {
+        if ((false !== $response = $this->_query("touch $real_key $expiration", $server_key))
             // Valid response.
-            if (isset(self::_TOUCH_SIGNALS[$response])) {
-                $this->result_code = self::_TOUCH_SIGNALS[$response];
-                $this->result_message = '';
-
-                return $this->result_code === self::RES_SUCCESS;
-            }
-
-            $this->_checkInvalidResponse($server_key, 'touch', $response);
+            &&
+            isset(self::_TOUCH_SIGNALS[$response])
+        ) {
+            return $this->_return(self::_TOUCH_SIGNALS[$response] === self::RES_SUCCESS,
+                self::_TOUCH_SIGNALS[$response]);
         }
 
         return $this->_return(false, self::RES_FAILURE, __METHOD__ . ' failed.');
@@ -1864,53 +1846,14 @@ class MemcachedEmulator
     }
 
     /**
-     * Writes data to socket and reads first line.
-     *
-     * @param string         $server_key
-     * @param string         $cmd
-     * @param resource|false $socket
-     * @return string|false False on error.
-     */
-    protected function _write($server_key, $cmd, &$socket = null)
-    {
-        if (
-            (false !== $socket = $this->_getSocket($server_key))
-            &&
-            (\fwrite($socket, $cmd . "\r\n") > 0)
-            &&
-            (false !== $response = \fgets($socket))
-        ) {
-            // Strip trailing "\r\n"
-            return \substr($response, 0, -2);
-        }
-
-        return false;
-    }
-
-    /**
-     * Reads line from server socket.
-     *
-     * @param string $server_key
-     * @return string|false
-     */
-    protected function _read($server_key)
-    {
-        if (false !== $response = \fgets($this->sockets[$server_key])) {
-            // Strip trailing "\r\n"
-            return \substr($response, 0, -2);
-        }
-
-        return false;
-    }
-
-    /**
      * Sends command to a server and returns single result.
      *
-     * @param string $command
-     * @param string $server_key
+     * @param string        $command
+     * @param string        $server_key
+     * @param resource|bool $socket
      * @return string|boolean False on error.
      */
-    protected function _query($command, $server_key = null)
+    protected function _query($command, $server_key = null, &$socket = null)
     {
         if (false === $socket = $this->_getSocket($server_key)) {
             return false;
@@ -1928,55 +1871,13 @@ class MemcachedEmulator
             return false;
         }
 
-        // Return known signal.
+        // Check errors if unknown signal.
         if (!isset(self::_SIGNALS[$command_name][\rtrim($buffer)])) {
             // Check invalid response
             $this->_checkInvalidResponse($server_key, $command, $buffer);
         }
 
         return \rtrim($buffer);
-    }
-
-    /**
-     * Sends command to a server and parses multi-line result.
-     *
-     * @param string $command
-     * @param string $server_key
-     * @return array|boolean False on error.
-     */
-    protected function _queryLines($command, $server_key = null)
-    {
-        if (false === $socket = $this->_getSocket($server_key)) {
-            return false;
-        }
-
-        if (\fwrite($socket, $command . "\r\n") < 1) {
-            return false;
-        }
-
-        // Check command response signal.
-        [$command_name,] = \explode(' ', $command, 2);
-
-        $buffer = '';
-
-        // Read lines
-        while (!\feof($socket)) {
-            if (false === $line = \fgets($socket)) {
-                return false;
-            }
-
-            // Stop on known signal.
-            if (isset(self::_SIGNALS[$command_name][\rtrim($line)])) {
-                break;
-            }
-
-            $buffer .= $line;
-        }
-
-        // Check invalid response
-        $this->_checkInvalidResponse($server_key, $command, $buffer);
-
-        return $buffer === '' ? [] : \explode("\r\n", \rtrim($buffer));
     }
 
     /**
@@ -2022,40 +1923,6 @@ class MemcachedEmulator
             );
         }
     }
-
-    /**
-     * Read line from socket.
-     *
-     * @param string $server_key
-     * @param int    $length
-     * @return  string|false
-     * @deprecated
-     */
-    /*protected function _readSocket($server_key, $length = null)
-    {
-        if (false !== $socket = $this->_getSocket($server_key)) {
-            // Strip last two \r\n from line!
-            return $length ? \fgets($socket, $length) : \substr(\fgets($socket), 0, -2);
-        }
-
-        return false;
-    }*/
-
-    /**
-     * Tests for end-of-file on a socket.
-     *
-     * @param string $server_key
-     * @return bool
-     * @deprecated
-     */
-    /*protected function _endOfSocket($server_key = null)
-    {
-        if (false !== $socket = $this->_getSocket($server_key)) {
-            return \feof($socket);
-        }
-
-        return false;
-    }*/
 
     /**
      * Closes socket connections.
