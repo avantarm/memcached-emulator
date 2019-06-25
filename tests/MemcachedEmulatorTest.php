@@ -1,62 +1,54 @@
 <?php
+/**
+ * This file is part of the Avantarm package.
+ * (c) Avantarm <avantarm@gmail.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
 
-namespace Avantarm\WincacheEmulator\Tests;
+namespace Avantarm\MemcachedEmulator\Tests;
 
 use Avantarm\MemcachedEmulator\MemcachedEmulator;
 use PHPUnit\Framework\TestCase;
 
 /**
- * Class WincacheEmulatorTest
+ * Class MemcachedEmulatorTest
  *
  * @package Avantarm\WincacheEmulator
- * @coversDefaultClass \Avantarm\WincacheEmulator\WincacheEmulator
+ * @coversDefaultClass \Avantarm\MemcachedEmulator\MemcachedEmulator
  */
 class MemcachedEmulatorTest extends TestCase
 {
-    const SERVER_KEY = '127.0.0.1:11211';
+    public const SERVER_KEY = '127.0.0.1:11211';
 
     /**
      * @var MemcachedEmulator
      */
-    protected static $m;
+    protected $emulator;
 
     /**
      * @inheritdoc
      */
-    public static function setUpBeforeClass()
+    public function setUp(): void
     {
-        parent::setUpBeforeClass();
+        $this->emulator = new MemcachedEmulator();
 
-        static::$m = new MemcachedEmulator();
+        $this->emulator->addServer('127.0.0.1', 11211);
 
-        static::$m->addServer('127.0.0.1', 11211);
+        // Flush doesn't actually delete all keys but only expires.
+        //static::$m->flush();
 
-
-        /*
-        $m = new \Memcache();
-        $m->addServer('127.0.0.1', 11211);
-
-        $s = "a\r\nEND\r\n";
-
-        $m->set('key2', $s);
-
-        var_dump($m->get('key2'));
-
-        var_dump(static::$m->get('key2'));
-        */
-
+        $this->emulator->delete('key1');
+        $this->emulator->delete('key2');
     }
 
     /**
      * @inheritdoc
      */
-    public function setUp()
+    public function tearDown(): void
     {
-        // Flush doesn't actually delete all keys but only expires.
-        //static::$m->flush();
-
-        static::$m->delete('key1');
-        static::$m->delete('key2');
+        unset($this->emulator);
     }
 
     /**
@@ -64,9 +56,9 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAddMissed()
     {
-        $this->assertTrue(static::$m->add('key1', '1'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals('1', static::$m->get('key1'));
+        $this->assertTrue($this->emulator->add('key1', '1'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals('1', $this->emulator->get('key1'));
     }
 
     /**
@@ -74,9 +66,9 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAddExists()
     {
-        $this->assertTrue(static::$m->set('key1', '12'));
-        $this->assertFalse(static::$m->add('key1', '2'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, static::$m->getResultCode());
+        $this->assertTrue($this->emulator->set('key1', '12'));
+        $this->assertFalse($this->emulator->add('key1', '2'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, $this->emulator->getResultCode());
     }
 
     /**
@@ -84,9 +76,9 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAddByKeyMissed()
     {
-        $this->assertTrue(static::$m->addByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals('1', static::$m->getByKey(static::SERVER_KEY, 'key1'));
+        $this->assertTrue($this->emulator->addByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals('1', $this->emulator->getByKey(static::SERVER_KEY, 'key1'));
     }
 
     /**
@@ -94,9 +86,9 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAddByKeyExists()
     {
-        $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertFalse(static::$m->addByKey(static::SERVER_KEY, 'key1', '2'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, static::$m->getResultCode());
+        $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertFalse($this->emulator->addByKey(static::SERVER_KEY, 'key1', '2'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, $this->emulator->getResultCode());
     }
 
     /**
@@ -104,7 +96,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAddServer()
     {
-        $this->assertTrue(static::$m->addServer('127.0.0.2', 11211));
+        $this->assertTrue($this->emulator->addServer('127.0.0.2', 11211));
     }
 
     /**
@@ -112,7 +104,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAddServers()
     {
-        $this->assertTrue(static::$m->addServers(
+        $this->assertTrue($this->emulator->addServers(
             [
                 ['127.0.0.3', 11211, 100],
                 ['127.0.0.4', 11211, 100],
@@ -125,8 +117,8 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAppendMissed()
     {
-        $this->assertFalse(static::$m->append('key1', '2'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->append('key1', '2'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, $this->emulator->getResultCode());
     }
 
     /**
@@ -134,10 +126,10 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAppendExists()
     {
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->append('key1', '2'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals('12', static::$m->get('key1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->append('key1', '2'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals('12', $this->emulator->get('key1'));
     }
 
     /**
@@ -145,8 +137,8 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAppendByKeyMissed()
     {
-        $this->assertFalse(static::$m->appendByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->appendByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, $this->emulator->getResultCode());
     }
 
     /**
@@ -154,10 +146,10 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testAppendByKeyExists()
     {
-        $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertTrue(static::$m->appendByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals('11', static::$m->getByKey(static::SERVER_KEY, 'key1'));
+        $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertTrue($this->emulator->appendByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals('11', $this->emulator->getByKey(static::SERVER_KEY, 'key1'));
     }
 
     /**
@@ -165,16 +157,16 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testCas()
     {
-        $this->assertTrue(static::$m->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
 
-        $result = static::$m->get('key1', null, MemcachedEmulator::GET_EXTENDED);
-        if (!array_key_exists('value', $result) || !array_key_exists('cas', $result)) {
+        $result = $this->emulator->get('key1', null, MemcachedEmulator::GET_EXTENDED);
+        if (!\array_key_exists('value', $result) || !\array_key_exists('cas', $result)) {
             $this->markTestIncomplete('Could not get cas token.');
         }
 
-        $this->assertFalse(static::$m->cas(767867, 'key1', '2'));
-        $this->assertTrue(static::$m->cas($result['cas'], 'key1', '2'));
-        $this->assertEquals('2', static::$m->get('key1'));
+        $this->assertFalse($this->emulator->cas(767867, 'key1', '2'));
+        $this->assertTrue($this->emulator->cas($result['cas'], 'key1', '2'));
+        $this->assertEquals('2', $this->emulator->get('key1'));
     }
 
     /**
@@ -182,16 +174,16 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testCasByKey()
     {
-        $this->assertTrue(static::$m->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
 
-        $result = static::$m->get('key1', null, MemcachedEmulator::GET_EXTENDED);
-        if (!array_key_exists('value', $result) || !array_key_exists('cas', $result)) {
+        $result = $this->emulator->get('key1', null, MemcachedEmulator::GET_EXTENDED);
+        if (!\array_key_exists('value', $result) || !\array_key_exists('cas', $result)) {
             $this->markTestIncomplete('Could not get cas token.');
         }
 
-        $this->assertFalse(static::$m->casByKey(767867, static::SERVER_KEY, 'key1', '2'));
-        $this->assertTrue(static::$m->casByKey($result['cas'], static::SERVER_KEY, 'key1', '2'));
-        $this->assertEquals('2', static::$m->get('key1'));
+        $this->assertFalse($this->emulator->casByKey(767867, static::SERVER_KEY, 'key1', '2'));
+        $this->assertTrue($this->emulator->casByKey($result['cas'], static::SERVER_KEY, 'key1', '2'));
+        $this->assertEquals('2', $this->emulator->get('key1'));
     }
 
     /**
@@ -200,9 +192,9 @@ class MemcachedEmulatorTest extends TestCase
     public function testDecrementMissed()
     {
         // If the operation would decrease the value below 0, the new value will be 0.
-        $this->assertEquals(1, static::$m->decrement('key1', 1, 2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals(2, static::$m->get('key1'));
+        $this->assertEquals(1, $this->emulator->decrement('key1', 1, 2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals(2, $this->emulator->get('key1'));
     }
 
     /**
@@ -210,12 +202,12 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testDecrementExists()
     {
-        $this->assertTrue(static::$m->set('key1', '3'));
+        $this->assertTrue($this->emulator->set('key1', '3'));
 
         // If the operation would decrease the value below 0, the new value will be 0.
-        $this->assertEquals(2, static::$m->decrement('key1', 1, 2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals(2, static::$m->get('key1'));
+        $this->assertEquals(2, $this->emulator->decrement('key1', 1, 2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals(2, $this->emulator->get('key1'));
     }
 
     /**
@@ -224,9 +216,9 @@ class MemcachedEmulatorTest extends TestCase
     public function testDecrementByKeyMissed()
     {
         // If the operation would decrease the value below 0, the new value will be 0.
-        $this->assertEquals(1, static::$m->decrementByKey(static::SERVER_KEY, 'key1', 1, 2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals(2, static::$m->get('key1'));
+        $this->assertEquals(1, $this->emulator->decrementByKey(static::SERVER_KEY, 'key1', 1, 2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals(2, $this->emulator->get('key1'));
     }
 
     /**
@@ -234,12 +226,12 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testDecrementByKeyExists()
     {
-        $this->assertTrue(static::$m->set('key1', '3'));
+        $this->assertTrue($this->emulator->set('key1', '3'));
 
         // If the operation would decrease the value below 0, the new value will be 0.
-        $this->assertEquals(2, static::$m->decrementByKey(static::SERVER_KEY, 'key1', 1, 2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals(2, static::$m->get('key1'));
+        $this->assertEquals(2, $this->emulator->decrementByKey(static::SERVER_KEY, 'key1', 1, 2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals(2, $this->emulator->get('key1'));
     }
 
     /**
@@ -247,13 +239,13 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testDelete()
     {
-        $this->assertFalse(static::$m->delete('key1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->delete('key1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
 
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->delete('key1'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertFalse(static::$m->get('key1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->delete('key1'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertFalse($this->emulator->get('key1'));
     }
 
     /**
@@ -261,13 +253,13 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testDeleteByKey()
     {
-        $this->assertFalse(static::$m->deleteByKey(static::SERVER_KEY, 'key1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->deleteByKey(static::SERVER_KEY, 'key1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
 
-        $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertTrue(static::$m->deleteByKey(static::SERVER_KEY, 'key1'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertFalse(static::$m->getByKey(static::SERVER_KEY, 'key1'));
+        $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertTrue($this->emulator->deleteByKey(static::SERVER_KEY, 'key1'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertFalse($this->emulator->getByKey(static::SERVER_KEY, 'key1'));
     }
 
     /**
@@ -278,26 +270,26 @@ class MemcachedEmulatorTest extends TestCase
         $this->assertEquals([
             'key1' => MemcachedEmulator::RES_NOTFOUND,
             'key2' => MemcachedEmulator::RES_NOTFOUND,
-        ], static::$m->deleteMulti(['key1', 'key2']));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        ], $this->emulator->deleteMulti(['key1', 'key2']));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
 
-        $this->assertTrue(static::$m->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
         $this->assertEquals([
             'key1' => true,
             'key2' => MemcachedEmulator::RES_NOTFOUND,
-        ], static::$m->deleteMulti(['key1', 'key2']));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
-        $this->assertFalse(static::$m->get('key1'));
+        ], $this->emulator->deleteMulti(['key1', 'key2']));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
+        $this->assertFalse($this->emulator->get('key1'));
 
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->set('key2', '2'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key2', '2'));
         $this->assertEquals([
             'key1' => true,
             'key2' => true,
-        ], static::$m->deleteMulti(['key1', 'key2']));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertFalse(static::$m->get('key1'));
-        $this->assertFalse(static::$m->get('key2'));
+        ], $this->emulator->deleteMulti(['key1', 'key2']));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertFalse($this->emulator->get('key1'));
+        $this->assertFalse($this->emulator->get('key2'));
     }
 
     /**
@@ -308,26 +300,26 @@ class MemcachedEmulatorTest extends TestCase
         $this->assertEquals([
             'key1' => MemcachedEmulator::RES_NOTFOUND,
             'key2' => MemcachedEmulator::RES_NOTFOUND,
-        ], static::$m->deleteMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        ], $this->emulator->deleteMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
 
-        $this->assertTrue(static::$m->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
         $this->assertEquals([
             'key1' => true,
             'key2' => MemcachedEmulator::RES_NOTFOUND,
-        ], static::$m->deleteMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
-        $this->assertFalse(static::$m->getByKey(static::SERVER_KEY, 'key1'));
+        ], $this->emulator->deleteMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
+        $this->assertFalse($this->emulator->getByKey(static::SERVER_KEY, 'key1'));
 
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->set('key2', '2'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key2', '2'));
         $this->assertEquals([
             'key1' => true,
             'key2' => true,
-        ], static::$m->deleteMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertFalse(static::$m->getByKey(static::SERVER_KEY, 'key1'));
-        $this->assertFalse(static::$m->getByKey(static::SERVER_KEY, 'key2'));
+        ], $this->emulator->deleteMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertFalse($this->emulator->getByKey(static::SERVER_KEY, 'key1'));
+        $this->assertFalse($this->emulator->getByKey(static::SERVER_KEY, 'key2'));
     }
 
     /**
@@ -336,17 +328,17 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testFlush()
     {
-        $this->assertTrue(static::$m->flush());
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+        $this->assertTrue($this->emulator->flush());
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
 
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->set('key2', '2'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key2', '2'));
 
-        $this->assertTrue(static::$m->flush());
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+        $this->assertTrue($this->emulator->flush());
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
 
-        $this->assertFalse(static::$m->get('key1'));
-        $this->assertFalse(static::$m->get('key2'));
+        $this->assertFalse($this->emulator->get('key1'));
+        $this->assertFalse($this->emulator->get('key2'));
     }
 
     /**
@@ -355,20 +347,20 @@ class MemcachedEmulatorTest extends TestCase
     public function testGet()
     {
         foreach (static::getTestValues() as $type => $value) {
-            $this->assertTrue(static::$m->set('key1', $value), \sprintf('Failed on "%s" value.', $type));
-            $this->assertEquals($value, static::$m->get('key1'));
-            $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+            $this->assertTrue($this->emulator->set('key1', $value), \sprintf('Failed on "%s" value.', $type));
+            $this->assertEquals($value, $this->emulator->get('key1'));
+            $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
 
             // Test case
-            $actual = static::$m->get('key1', null, MemcachedEmulator::GET_EXTENDED);
-            $this->assertInternalType('array', $actual);
+            $actual = $this->emulator->get('key1', null, MemcachedEmulator::GET_EXTENDED);
+            $this->assertIsArray($actual);
             $this->assertArrayHasKey('value', $actual);
             $this->assertArrayHasKey('cas', $actual);
             $this->assertEquals($value, $actual['value']);
         }
 
-        $this->assertFalse(static::$m->get('key2'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->get('key2'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
     }
 
     /**
@@ -376,19 +368,19 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetCompressed()
     {
-        static::$m->setOption(MemcachedEmulator::OPT_COMPRESSION, true);
-        static::$m->setOption(MemcachedEmulator::OPT_COMPRESSION_TYPE, MemcachedEmulator::COMPRESSION_ZLIB);
+        $this->emulator->setOption(MemcachedEmulator::OPT_COMPRESSION, true);
+        $this->emulator->setOption(MemcachedEmulator::OPT_COMPRESSION_TYPE, MemcachedEmulator::COMPRESSION_ZLIB);
 
         foreach (static::getTestValues() as $type => $value) {
-            $this->assertTrue(static::$m->set('key1', $value), \sprintf('Failed on "%s" value.', $type));
-            $this->assertEquals($value, static::$m->get('key1'));
-            $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+            $this->assertTrue($this->emulator->set('key1', $value), \sprintf('Failed on "%s" value.', $type));
+            $this->assertEquals($value, $this->emulator->get('key1'));
+            $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         }
 
-        $this->assertFalse(static::$m->get('key2'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->get('key2'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
 
-        static::$m->setOption(MemcachedEmulator::OPT_COMPRESSION, false);
+        $this->emulator->setOption(MemcachedEmulator::OPT_COMPRESSION, false);
     }
 
     /**
@@ -397,14 +389,14 @@ class MemcachedEmulatorTest extends TestCase
     public function testGetByKey()
     {
         foreach (static::getTestValues() as $type => $value) {
-            $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', $value),
-                \sprintf('Failed on "%s" value: %s.', $type, static::$m->getResultCode()));
-            $this->assertEquals($value, static::$m->getByKey(static::SERVER_KEY, 'key1'));
-            $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+            $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key1', $value),
+                \sprintf('Failed on "%s" value: %s.', $type, $this->emulator->getResultCode()));
+            $this->assertEquals($value, $this->emulator->getByKey(static::SERVER_KEY, 'key1'));
+            $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         }
 
-        $this->assertFalse(static::$m->getByKey(static::SERVER_KEY, 'key2'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->getByKey(static::SERVER_KEY, 'key2'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
     }
 
     /**
@@ -413,12 +405,12 @@ class MemcachedEmulatorTest extends TestCase
     public function testGetAllKeys()
     {
         // Delete all existing keys first
-        static::$m->deleteMulti(static::$m->getAllKeys());
+        $this->emulator->deleteMulti($this->emulator->getAllKeys());
 
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->set('key2', '2'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key2', '2'));
 
-        $this->assertEqualsCanonicalize(['key1', 'key2'], static::$m->getAllKeys());
+        $this->assertEqualsCanonicalizing(['key1', 'key2'], $this->emulator->getAllKeys());
     }
 
     /**
@@ -426,31 +418,31 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetMulti()
     {
-        $this->assertEquals([], static::$m->getMulti(['key1', 'key2']));
+        $this->assertEquals([], $this->emulator->getMulti(['key1', 'key2']));
 
-        $this->assertTrue(static::$m->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
 
-        $this->assertEqualsCanonicalize(['key1' => '1'], static::$m->getMulti(['key1', 'key2']));
+        $this->assertEqualsCanonicalizing(['key1' => '1'], $this->emulator->getMulti(['key1', 'key2']));
 
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->set('key2', '2'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key2', '2'));
 
-        $this->assertEqualsCanonicalize(['key1' => '1', 'key2' => '2'], static::$m->getMulti(['key1', 'key2']));
+        $this->assertEqualsCanonicalizing(['key1' => '1', 'key2' => '2'], $this->emulator->getMulti(['key1', 'key2']));
 
         $values = self::getTestValues();
-        $keys = array_keys($values);
+        $keys = \array_keys($values);
 
-        $this->assertTrue(static::$m->setMulti($values));
-        $this->assertEqualsCanonicalize($values, static::$m->getMulti($keys));
-        $this->assertEquals(array_fill_keys($keys, true), static::$m->deleteMulti($keys));
+        $this->assertTrue($this->emulator->setMulti($values));
+        $this->assertEqualsCanonicalizing($values, $this->emulator->getMulti($keys));
+        $this->assertEquals(\array_fill_keys($keys, true), $this->emulator->deleteMulti($keys));
 
         // Test Preserve order: actually always
 
         // Test CAS
-        $this->assertTrue(static::$m->setMulti($values));
+        $this->assertTrue($this->emulator->setMulti($values));
 
-        $actual = static::$m->getMulti($keys, MemcachedEmulator::GET_EXTENDED);
-        $this->assertInternalType('array', $actual);
+        $actual = $this->emulator->getMulti($keys, MemcachedEmulator::GET_EXTENDED);
+        $this->assertIsArray($actual);
 
         foreach ($values as $key => $value) {
             $this->assertArrayHasKey($key, $actual);
@@ -465,25 +457,25 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetMultiByKey()
     {
-        $this->assertEquals([], static::$m->getMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
+        $this->assertEquals([], $this->emulator->getMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
 
-        $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key1', '1'));
 
-        $this->assertEqualsCanonicalize(['key1' => '1'],
-            static::$m->getMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
+        $this->assertEqualsCanonicalizing(['key1' => '1'],
+            $this->emulator->getMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
 
-        $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key2', '2'));
+        $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key2', '2'));
 
-        $this->assertEqualsCanonicalize(['key1' => '1', 'key2' => '2'],
-            static::$m->getMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
+        $this->assertEqualsCanonicalizing(['key1' => '1', 'key2' => '2'],
+            $this->emulator->getMultiByKey(static::SERVER_KEY, ['key1', 'key2']));
 
         $values = self::getTestValues();
-        $keys = array_keys($values);
+        $keys = \array_keys($values);
 
-        $this->assertTrue(static::$m->setMultiByKey(static::SERVER_KEY, $values));
-        $this->assertEqualsCanonicalize($values, static::$m->getMultiByKey(static::SERVER_KEY, $keys));
-        $this->assertEquals(array_fill_keys($keys, true), static::$m->deleteMultiByKey(static::SERVER_KEY, $keys));
+        $this->assertTrue($this->emulator->setMultiByKey(static::SERVER_KEY, $values));
+        $this->assertEqualsCanonicalizing($values, $this->emulator->getMultiByKey(static::SERVER_KEY, $keys));
+        $this->assertEquals(\array_fill_keys($keys, true), $this->emulator->deleteMultiByKey(static::SERVER_KEY, $keys));
     }
 
     /**
@@ -491,14 +483,15 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetOption()
     {
-        $this->assertEquals(0, static::$m->getOption(1234567));
+        $this->assertEquals(0, $this->emulator->getOption(1234567));
 
         // Use always available SERIALIZER_JSON;
-        $this->assertTrue(static::$m->setOption(MemcachedEmulator::OPT_SERIALIZER, MemcachedEmulator::SERIALIZER_JSON));
-        $this->assertEquals(MemcachedEmulator::SERIALIZER_JSON, static::$m->getOption(MemcachedEmulator::OPT_SERIALIZER));
+        $this->assertTrue($this->emulator->setOption(MemcachedEmulator::OPT_SERIALIZER, MemcachedEmulator::SERIALIZER_JSON));
+        $this->assertEquals(MemcachedEmulator::SERIALIZER_JSON,
+            $this->emulator->getOption(MemcachedEmulator::OPT_SERIALIZER));
 
         // Switch back to default serializer.
-        static::$m->setOption(MemcachedEmulator::OPT_SERIALIZER, MemcachedEmulator::SERIALIZER_PHP);
+        $this->emulator->setOption(MemcachedEmulator::OPT_SERIALIZER, MemcachedEmulator::SERIALIZER_PHP);
     }
 
     /**
@@ -507,9 +500,9 @@ class MemcachedEmulatorTest extends TestCase
     public function testGetResultCode()
     {
         // Execute success command to reset result.
-        $this->assertTrue(static::$m->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
 
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
     }
 
     /**
@@ -517,7 +510,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetResultMessage()
     {
-        $this->assertEquals('', static::$m->getResultMessage());
+        $this->assertEquals('', $this->emulator->getResultMessage());
     }
 
     /**
@@ -525,11 +518,11 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetServerByKey()
     {
-        $this->assertFalse(static::$m->getServerByKey('asasas'));
+        $this->assertFalse($this->emulator->getServerByKey('false_server'));
 
-        $server = static::$m->getServerByKey(static::SERVER_KEY);
+        $server = $this->emulator->getServerByKey(static::SERVER_KEY);
 
-        $this->assertInternalType('array', $server);
+        $this->assertIsArray($server);
         $this->assertArrayHasKey('host', $server);
         $this->assertArrayHasKey('port', $server);
         $this->assertArrayHasKey('weight', $server);
@@ -540,14 +533,14 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetServerList()
     {
-        $servers = static::$m->getServerList();
+        $servers = $this->emulator->getServerList();
 
-        $this->assertInternalType('array', $servers);
+        $this->assertIsArray($servers);
         $this->assertArrayHasKey('0', $servers);
 
         $server = \current($servers);
 
-        $this->assertInternalType('array', $server);
+        $this->assertIsArray($server);
         $this->assertArrayHasKey('host', $server);
         $this->assertArrayHasKey('port', $server);
         $this->assertArrayHasKey('weight', $server);
@@ -558,9 +551,9 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testGetStats()
     {
-        $stats = static::$m->getStats();
+        $stats = $this->emulator->getStats();
 
-        $this->assertInternalType('array', $stats);
+        $this->assertIsArray($stats);
         $this->assertArrayHasKey(static::SERVER_KEY, $stats);
 
         $stat = $stats[static::SERVER_KEY];
@@ -574,10 +567,10 @@ class MemcachedEmulatorTest extends TestCase
 
     public function testGetVersion()
     {
-        $version = static::$m->getVersion();
+        $version = $this->emulator->getVersion();
 
-        $this->assertInternalType('array', $version);
-        $this->assertCount(\count(static::$m->getServerList()), $version);
+        $this->assertIsArray($version);
+        $this->assertCount(\count($this->emulator->getServerList()), $version);
         $this->assertArrayHasKey(static::SERVER_KEY, $version);
     }
 
@@ -587,9 +580,9 @@ class MemcachedEmulatorTest extends TestCase
     public function testIncrementMissed()
     {
         // If the operation would decrease the value below 0, the new value will be 0.
-        $this->assertEquals(3, static::$m->increment('key1', 1, 2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals(3, static::$m->get('key1'));
+        $this->assertEquals(3, $this->emulator->increment('key1', 1, 2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals(3, $this->emulator->get('key1'));
     }
 
     /**
@@ -597,12 +590,12 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testIncrementExists()
     {
-        $this->assertTrue(static::$m->set('key1', '3'));
+        $this->assertTrue($this->emulator->set('key1', '3'));
 
         // If the operation would decrease the value below 0, the new value will be 0.
-        $this->assertEquals(4, static::$m->increment('key1', 1, 2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals(4, static::$m->get('key1'));
+        $this->assertEquals(4, $this->emulator->increment('key1', 1, 2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals(4, $this->emulator->get('key1'));
     }
 
     /**
@@ -611,9 +604,9 @@ class MemcachedEmulatorTest extends TestCase
     public function testIncrementByKeyMissed()
     {
         // If the operation would decrease the value below 0, the new value will be 0.
-        $this->assertEquals(3, static::$m->incrementByKey(static::SERVER_KEY, 'key1', 1, 2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals(3, static::$m->get('key1'));
+        $this->assertEquals(3, $this->emulator->incrementByKey(static::SERVER_KEY, 'key1', 1, 2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals(3, $this->emulator->get('key1'));
     }
 
     /**
@@ -621,12 +614,12 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testIncrementByKeyExists()
     {
-        $this->assertTrue(static::$m->set('key1', '3'));
+        $this->assertTrue($this->emulator->set('key1', '3'));
 
         // If the operation would decrease the value below 0, the new value will be 0.
-        $this->assertEquals(4, static::$m->incrementByKey(static::SERVER_KEY, 'key1', 1, 2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals(4, static::$m->get('key1'));
+        $this->assertEquals(4, $this->emulator->incrementByKey(static::SERVER_KEY, 'key1', 1, 2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals(4, $this->emulator->get('key1'));
     }
 
     /**
@@ -634,7 +627,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testIsPersistent()
     {
-        $this->assertFalse(static::$m->isPersistent());
+        $this->assertFalse($this->emulator->isPersistent());
     }
 
     /**
@@ -642,7 +635,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testIsPristine()
     {
-        $this->assertTrue(static::$m->isPristine());
+        $this->assertTrue($this->emulator->isPristine());
     }
 
     /**
@@ -650,10 +643,10 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testPrependExists()
     {
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->prepend('key1', '2'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
-        $this->assertEquals('21', static::$m->get('key1'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->prepend('key1', '2'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
+        $this->assertEquals('21', $this->emulator->get('key1'));
     }
 
     /**
@@ -661,8 +654,8 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testPrependByKeyMissed()
     {
-        $this->assertFalse(static::$m->prependByKey(static::SERVER_KEY, 'key1', '2'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->prependByKey(static::SERVER_KEY, 'key1', '2'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, $this->emulator->getResultCode());
     }
 
     /**
@@ -670,7 +663,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testQuit()
     {
-        $this->assertTrue(static::$m->quit());
+        $this->assertTrue($this->emulator->quit());
     }
 
     /**
@@ -678,8 +671,8 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testReplaceMissed()
     {
-        $this->assertFalse(static::$m->replace('key1', '1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->replace('key1', '1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, $this->emulator->getResultCode());
     }
 
     /**
@@ -687,9 +680,9 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testReplaceExists()
     {
-        $this->assertTrue(static::$m->set('key1', '12'));
-        $this->assertTrue(static::$m->replace('key1', '2'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+        $this->assertTrue($this->emulator->set('key1', '12'));
+        $this->assertTrue($this->emulator->replace('key1', '2'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
     }
 
     /**
@@ -697,8 +690,8 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testReplaceByKeyMissed()
     {
-        $this->assertFalse(static::$m->replaceByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->replaceByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTSTORED, $this->emulator->getResultCode());
     }
 
     /**
@@ -706,9 +699,9 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testReplaceByKeyExists()
     {
-        $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', '1'));
-        $this->assertTrue(static::$m->replaceByKey(static::SERVER_KEY, 'key1', '2'));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+        $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key1', '1'));
+        $this->assertTrue($this->emulator->replaceByKey(static::SERVER_KEY, 'key1', '2'));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
     }
 
     /**
@@ -716,10 +709,10 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testResetServerList()
     {
-        $this->assertTrue(static::$m->resetServerList());
-        $this->assertEquals([], static::$m->getServerList());
+        $this->assertTrue($this->emulator->resetServerList());
+        $this->assertEquals([], $this->emulator->getServerList());
 
-        static::$m->addServer('127.0.0.1', 11211);
+        $this->emulator->addServer('127.0.0.1', 11211);
     }
 
     /**
@@ -763,14 +756,14 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testSetOption()
     {
-        $this->assertTrue(static::$m->setOption(MemcachedEmulator::OPT_COMPRESSION, false));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+        $this->assertTrue($this->emulator->setOption(MemcachedEmulator::OPT_COMPRESSION, false));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
 
-        $this->assertFalse(static::$m->setOption(MemcachedEmulator::OPT_COMPRESSION_TYPE, 'invalid'));
-        $this->assertEquals(MemcachedEmulator::RES_INVALID_ARGUMENTS, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->setOption(MemcachedEmulator::OPT_COMPRESSION_TYPE, 'invalid'));
+        $this->assertEquals(MemcachedEmulator::RES_INVALID_ARGUMENTS, $this->emulator->getResultCode());
 
-        $this->assertFalse(static::$m->setOption(MemcachedEmulator::OPT_SERIALIZER, 'invalid'));
-        $this->assertEquals(MemcachedEmulator::RES_INVALID_ARGUMENTS, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->setOption(MemcachedEmulator::OPT_SERIALIZER, 'invalid'));
+        $this->assertEquals(MemcachedEmulator::RES_INVALID_ARGUMENTS, $this->emulator->getResultCode());
     }
 
     /**
@@ -778,16 +771,16 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testSetOptions()
     {
-        $this->assertTrue(static::$m->setOptions([
+        $this->assertTrue($this->emulator->setOptions([
             MemcachedEmulator::OPT_COMPRESSION => false,
         ]));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
 
-        $this->assertFalse(static::$m->setOptions([
+        $this->assertFalse($this->emulator->setOptions([
             MemcachedEmulator::OPT_COMPRESSION      => false,
             MemcachedEmulator::OPT_COMPRESSION_TYPE => 'invalid',
         ]));
-        $this->assertEquals(MemcachedEmulator::RES_INVALID_ARGUMENTS, static::$m->getResultCode());
+        $this->assertEquals(MemcachedEmulator::RES_INVALID_ARGUMENTS, $this->emulator->getResultCode());
     }
 
     /**
@@ -796,7 +789,7 @@ class MemcachedEmulatorTest extends TestCase
     public function testSetSaslAuthData()
     {
         try {
-            static::$m->setSaslAuthData('username', 'pass');
+            $this->emulator->setSaslAuthData('username', 'pass');
         } catch (\Exception $e) {
             $this->assertInstanceOf(\BadMethodCallException::class, $e);
         }
@@ -829,19 +822,19 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testFlushDelay()
     {
-        $this->assertTrue(static::$m->set('key1', '1'));
-        $this->assertTrue(static::$m->set('key2', '2'));
+        $this->assertTrue($this->emulator->set('key1', '1'));
+        $this->assertTrue($this->emulator->set('key2', '2'));
 
-        $this->assertTrue(static::$m->flush(2));
-        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, static::$m->getResultCode());
+        $this->assertTrue($this->emulator->flush(2));
+        $this->assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
 
-        $this->assertEquals('1', static::$m->get('key1'));
-        $this->assertEquals('2', static::$m->get('key2'));
+        $this->assertEquals('1', $this->emulator->get('key1'));
+        $this->assertEquals('2', $this->emulator->get('key2'));
 
-        sleep(2);
+        \sleep(2);
 
-        $this->assertFalse(static::$m->get('key1'));
-        $this->assertFalse(static::$m->get('key2'));
+        $this->assertFalse($this->emulator->get('key1'));
+        $this->assertFalse($this->emulator->get('key2'));
     }
 
     /**
@@ -849,12 +842,12 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testSetExpiration()
     {
-        $this->assertTrue(static::$m->set('key1', '1', 1));
+        $this->assertTrue($this->emulator->set('key1', '1', 1));
 
-        sleep(2);
+        \sleep(2);
 
-        $this->assertFalse(static::$m->get('key1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->get('key1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
     }
 
     /**
@@ -862,15 +855,15 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testSetMultiExpiration()
     {
-        $this->assertTrue(static::$m->setMulti(['key1' => '1', 'key2' => '2'], 1));
+        $this->assertTrue($this->emulator->setMulti(['key1' => '1', 'key2' => '2'], 1));
 
-        sleep(2);
+        \sleep(2);
 
-        $this->assertFalse(static::$m->get('key1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->get('key1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
 
-        $this->assertFalse(static::$m->get('key2'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->get('key2'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
     }
 
     /**
@@ -883,16 +876,16 @@ class MemcachedEmulatorTest extends TestCase
             $this->markTestSkipped('"touch" command available since memcached 1.4.8 only.');
         }
 
-        $this->assertFalse(static::$m->touch('key1', 1));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->touch('key1', 1));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
 
-        $this->assertTrue(static::$m->set('key1', 1));
-        $this->assertTrue(static::$m->touch('key1', 1));
+        $this->assertTrue($this->emulator->set('key1', 1));
+        $this->assertTrue($this->emulator->touch('key1', 1));
 
-        sleep(2);
+        \sleep(2);
 
-        $this->assertFalse(static::$m->get('key1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->get('key1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
     }
 
     /**
@@ -905,27 +898,16 @@ class MemcachedEmulatorTest extends TestCase
             $this->markTestSkipped('"touch" command available since memcached 1.4.8 only.');
         }
 
-        $this->assertFalse(static::$m->touchByKey(static::SERVER_KEY, 'key1', 1));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
+        $this->assertFalse($this->emulator->touchByKey(static::SERVER_KEY, 'key1', 1));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
 
-        $this->assertTrue(static::$m->setByKey(static::SERVER_KEY, 'key1', 1));
-        $this->assertTrue(static::$m->touchByKey(static::SERVER_KEY, 'key1', 1));
+        $this->assertTrue($this->emulator->setByKey(static::SERVER_KEY, 'key1', 1));
+        $this->assertTrue($this->emulator->touchByKey(static::SERVER_KEY, 'key1', 1));
 
-        sleep(2);
+        \sleep(2);
 
-        $this->assertFalse(static::$m->getByKey(static::SERVER_KEY, 'key1'));
-        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, static::$m->getResultCode());
-    }
-
-    /**
-     * @param mixed  $expected
-     * @param mixed  $actual
-     * @param string $message
-     */
-    protected function assertEqualsCanonicalize($expected, $actual, $message = '')
-    {
-        // Use assertEquals(...$canonicalize=true) since keys order is random.
-        $this->assertEquals($expected, $actual, $message, 0, 10, true);
+        $this->assertFalse($this->emulator->getByKey(static::SERVER_KEY, 'key1'));
+        $this->assertEquals(MemcachedEmulator::RES_NOTFOUND, $this->emulator->getResultCode());
     }
 
     /**
@@ -946,7 +928,7 @@ class MemcachedEmulatorTest extends TestCase
             'array'       => ['a'],
             'object'      => new \stdClass(),
             'text'        => \file_get_contents(__FILE__),
-            __METHOD__ => __METHOD__,
+            __METHOD__    => __METHOD__,
         ];
     }
 
@@ -958,7 +940,7 @@ class MemcachedEmulatorTest extends TestCase
     {
         $server_key = $server_key ?? static::SERVER_KEY;
 
-        $versions = static::$m->getVersion();
+        $versions = $this->emulator->getVersion();
 
         return $versions[$server_key] ?? null;
     }

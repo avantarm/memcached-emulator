@@ -24,10 +24,15 @@
     }
   ],
   "require": {
-    "php": ">=7.0"
+    "php": "^7.2",
+    "ext-json": "*"
   },
   "require-dev": {
-    "phpunit/phpunit": "^6.5"
+    "phpunit/phpunit": "^8.2"
+  },
+  "suggest": {
+    "ext-igbinary": "*",
+    "ext-zlib": "*"
   },
   "autoload": {
     "psr-0": {
