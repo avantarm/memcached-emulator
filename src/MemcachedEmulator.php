@@ -878,6 +878,7 @@ class MemcachedEmulator
 
                 foreach ($slabs as $slab_id => $slab_number) {
                     // 0 means no limit of items per slab, but let's pass correct $slab_number
+                    // See https://elijaa.org/2010/12/24/understanding-memcached-stats-cachedump-command.html
                     if (false !== $response = $this->_query("stats cachedump $slab_id $slab_number", $server_key,
                             $socket)) {
                         while ($response !== self::RESPONSE_END) {
@@ -1842,7 +1843,7 @@ class MemcachedEmulator
      * @param string        $command
      * @param string        $server_key
      * @param resource|bool $socket
-     * @return string|boolean False on error.
+     * @return string|false False on error.
      */
     protected function _query($command, $server_key = null, &$socket = null)
     {
@@ -1854,13 +1855,13 @@ class MemcachedEmulator
             return false;
         }
 
-        // Check command response signal.
-        [$command_name,] = \explode(' ', $command, 2);
-
         // Read first line.
         if (false === $buffer = \fgets($socket)) {
             return false;
         }
+
+        // Check command response signal.
+        [$command_name,] = \explode(' ', $command, 2);
 
         // Check errors if unknown signal.
         if (!isset(self::_SIGNALS[$command_name][\rtrim($buffer)])) {
