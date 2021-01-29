@@ -383,22 +383,18 @@ class MemcachedEmulator
 
             // Apply default INI options if real Memcached extension is installed.
             if (\extension_loaded('memcached')) {
-                /** @noinspection UnnecessaryCastingInspection */
                 if ('' !== $serializer = (string)\ini_get('memcached.serializer')) {
                     $this->setOption(self::OPT_SERIALIZER, $serializer);
                 }
 
-                /** @noinspection UnnecessaryCastingInspection */
                 if ('' !== $compression_type = (string)\ini_get('memcached.compression_type')) {
                     $this->setOption(self::OPT_COMPRESSION_TYPE, $compression_type);
                 }
 
-                /** @noinspection UnnecessaryCastingInspection */
                 if ('' !== $compression_threshold = (string)\ini_get('memcached.compression_threshold')) {
                     $this->setOption(self::OPT_COMPRESSION_THRESHOLD, $compression_threshold);
                 }
 
-                /** @noinspection UnnecessaryCastingInspection */
                 if ('' !== $compression_factor = (string)\ini_get('memcached.compression_factor')) {
                     $this->setOption(self::OPT_COMPRESSION_FACTOR, $compression_factor);
                 }
@@ -508,7 +504,6 @@ class MemcachedEmulator
                 return false;
             }
 
-            /** @noinspection MultiAssignmentUsageInspection */
             [$host, $port, $weight] = $server;
 
             if (!$this->addServer($host, $port, $weight)) {
@@ -789,8 +784,6 @@ class MemcachedEmulator
         return $results;
     }
 
-    /** @noinspection PhpDocSignatureInspection */
-
     /**
      * (PECL memcached &gt;= 0.1.0)<br/>
      * Fetch the next result
@@ -804,8 +797,6 @@ class MemcachedEmulator
     {
         throw new \BadMethodCallException(\sprintf('%s is not emulated.', __METHOD__));
     }
-
-    /** @noinspection PhpDocSignatureInspection */
 
     /**
      * (PECL memcached &gt;= 0.1.0)<br/>
@@ -845,13 +836,13 @@ class MemcachedEmulator
      * Retrieve an item
      *
      * @link http://php.net/manual/en/memcached.get.php
-     * @param string   $key        <p>The key of the item to retrieve.</p>
-     * @param callable $cache_cb   [optional] <p>Read-through caching callback or <b>NULL</b>.</p>
-     * @param int      $flags      [optional] <p>Flags to control the returned result. When value of
-     *                             <b>Memcached::GET_EXTENDED</b> is given will return the CAS token.</p>
+     * @param string        $key      <p>The key of the item to retrieve.</p>
+     * @param callable|null $cache_cb [optional] <p>Read-through caching callback or <b>NULL</b>.</p>
+     * @param int           $flags    [optional] <p>Flags to control the returned result. When value of
+     *                                <b>Memcached::GET_EXTENDED</b> is given will return the CAS token.</p>
      * @return mixed the value stored in the cache or <b>FALSE</b> otherwise.
-     *                             The <b>Memcached::getResultCode</b> will return
-     *                             <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
+     *                                The <b>Memcached::getResultCode</b> will return
+     *                                <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
      */
     public function get($key, callable $cache_cb = null, $flags = null)
     {
@@ -887,6 +878,7 @@ class MemcachedEmulator
 
                 foreach ($slabs as $slab_id => $slab_number) {
                     // 0 means no limit of items per slab, but let's pass correct $slab_number
+                    // See https://elijaa.org/2010/12/24/understanding-memcached-stats-cachedump-command.html
                     if (false !== $response = $this->_query("stats cachedump $slab_id $slab_number", $server_key,
                             $socket)) {
                         while ($response !== self::RESPONSE_END) {
@@ -910,14 +902,14 @@ class MemcachedEmulator
      * Retrieve an item from a specific server
      *
      * @link http://php.net/manual/en/memcached.getbykey.php
-     * @param string   $server_key <p>The key identifying the server to store the value on or retrieve it from.</p>
-     * @param string   $key        <p>The key of the item to fetch.</p>
-     * @param callable $cache_cb   [optional] <p>Read-through caching callback or <b>NULL</b></p>
-     * @param int      $flags      [optional] <p>Flags to control the returned result. When value of
-     *                             <b>Memcached::GET_EXTENDED</b> is given will return the CAS token.</p>
+     * @param string        $server_key <p>The key identifying the server to store the value on or retrieve it from.</p>
+     * @param string        $key        <p>The key of the item to fetch.</p>
+     * @param callable|null $cache_cb   [optional] <p>Read-through caching callback or <b>NULL</b></p>
+     * @param int           $flags      [optional] <p>Flags to control the returned result. When value of
+     *                                  <b>Memcached::GET_EXTENDED</b> is given will return the CAS token.</p>
      * @return mixed the value stored in the cache or <b>FALSE</b> otherwise.
-     *                             The <b>Memcached::getResultCode</b> will return
-     *                             <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
+     *                                  The <b>Memcached::getResultCode</b> will return
+     *                                  <b>Memcached::RES_NOTFOUND</b> if the key does not exist.
      */
     public function getByKey($server_key, $key, callable $cache_cb = null, $flags = null)
     {
@@ -1851,7 +1843,7 @@ class MemcachedEmulator
      * @param string        $command
      * @param string        $server_key
      * @param resource|bool $socket
-     * @return string|boolean False on error.
+     * @return string|false False on error.
      */
     protected function _query($command, $server_key = null, &$socket = null)
     {
@@ -1863,13 +1855,13 @@ class MemcachedEmulator
             return false;
         }
 
-        // Check command response signal.
-        [$command_name,] = \explode(' ', $command, 2);
-
         // Read first line.
         if (false === $buffer = \fgets($socket)) {
             return false;
         }
+
+        // Check command response signal.
+        [$command_name,] = \explode(' ', $command, 2);
 
         // Check errors if unknown signal.
         if (!isset(self::_SIGNALS[$command_name][\rtrim($buffer)])) {
@@ -1967,41 +1959,40 @@ class MemcachedEmulator
                 break;
 
             default:
-                {
+            {
 
-                    switch ($this->options[$this->options_id][self::OPT_SERIALIZER]) {
-                        case self::SERIALIZER_IGBINARY:
-                            /** @noinspection PhpComposerExtensionStubsInspection */
-                            $value = \igbinary_serialize($value);
-                            self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_IGBINARY);
-                            break;
+                switch ($this->options[$this->options_id][self::OPT_SERIALIZER]) {
+                    case self::SERIALIZER_IGBINARY:
+                        /** @noinspection PhpComposerExtensionStubsInspection */
+                        $value = \igbinary_serialize($value);
+                        self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_IGBINARY);
+                        break;
 
-                        case self::SERIALIZER_JSON:
-                        case self::SERIALIZER_JSON_ARRAY:
-                            $value = \json_encode($value);
-                            self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_JSON);
-                            break;
+                    case self::SERIALIZER_JSON:
+                    case self::SERIALIZER_JSON_ARRAY:
+                        $value = \json_encode($value);
+                        self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_JSON);
+                        break;
 
-                        case self::SERIALIZER_MSGPACK:
-                            /** @noinspection PhpUndefinedFunctionInspection */
-                            $value = \msgpack_pack($value);
-                            self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_MSGPACK);
-                            break;
+                    case self::SERIALIZER_MSGPACK:
+                        /** @noinspection PhpUndefinedFunctionInspection */
+                        $value = \msgpack_pack($value);
+                        self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_MSGPACK);
+                        break;
 
-                        case self::SERIALIZER_PHP:
-                        default:
-                            $value = \serialize($value);
-                            self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_SERIALIZED);
-                            break;
-                    }
+                    case self::SERIALIZER_PHP:
+                    default:
+                        $value = \serialize($value);
+                        self::MEMC_VAL_SET_TYPE($flags, self::MEMC_VAL_IS_SERIALIZED);
+                        break;
                 }
+            }
         }
 
         $value = (string)$value;
         $bytes = \strlen($value);
 
         // Compress, but not for values below the threshold
-        /** @noinspection TypeUnsafeComparisonInspection */
         if ($bytes
             &&
             $this->options[$this->options_id][self::OPT_COMPRESSION]
