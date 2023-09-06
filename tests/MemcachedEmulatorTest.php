@@ -191,7 +191,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testDecrementMissed()
     {
-        // If the operation would decrease the value below 0, the new value will be 0.
+        // If the operation decrease the value below 0, the new value will be 0.
         static::assertEquals(1, $this->emulator->decrement('key1', 1, 2));
         static::assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         static::assertEquals(2, $this->emulator->get('key1'));
@@ -204,7 +204,7 @@ class MemcachedEmulatorTest extends TestCase
     {
         static::assertTrue($this->emulator->set('key1', '3'));
 
-        // If the operation would decrease the value below 0, the new value will be 0.
+        // If the operation decrease the value below 0, the new value will be 0.
         static::assertEquals(2, $this->emulator->decrement('key1', 1, 2));
         static::assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         static::assertEquals(2, $this->emulator->get('key1'));
@@ -215,7 +215,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testDecrementByKeyMissed()
     {
-        // If the operation would decrease the value below 0, the new value will be 0.
+        // If the operation decrease the value below 0, the new value will be 0.
         static::assertEquals(1, $this->emulator->decrementByKey(static::SERVER_KEY, 'key1', 1, 2));
         static::assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         static::assertEquals(2, $this->emulator->get('key1'));
@@ -228,7 +228,7 @@ class MemcachedEmulatorTest extends TestCase
     {
         static::assertTrue($this->emulator->set('key1', '3'));
 
-        // If the operation would decrease the value below 0, the new value will be 0.
+        // If the operation decrease the value below 0, the new value will be 0.
         static::assertEquals(2, $this->emulator->decrementByKey(static::SERVER_KEY, 'key1', 1, 2));
         static::assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         static::assertEquals(2, $this->emulator->get('key1'));
@@ -584,7 +584,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testIncrementMissed()
     {
-        // If the operation would decrease the value below 0, the new value will be 0.
+        // If the operation decrease the value below 0, the new value will be 0.
         static::assertEquals(3, $this->emulator->increment('key1', 1, 2));
         static::assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         static::assertEquals(3, $this->emulator->get('key1'));
@@ -597,7 +597,7 @@ class MemcachedEmulatorTest extends TestCase
     {
         static::assertTrue($this->emulator->set('key1', '3'));
 
-        // If the operation would decrease the value below 0, the new value will be 0.
+        // If the operation decrease the value below 0, the new value will be 0.
         static::assertEquals(4, $this->emulator->increment('key1', 1, 2));
         static::assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         static::assertEquals(4, $this->emulator->get('key1'));
@@ -608,7 +608,7 @@ class MemcachedEmulatorTest extends TestCase
      */
     public function testIncrementByKeyMissed()
     {
-        // If the operation would decrease the value below 0, the new value will be 0.
+        // If the operation decrease the value below 0, the new value will be 0.
         static::assertEquals(3, $this->emulator->incrementByKey(static::SERVER_KEY, 'key1', 1, 2));
         static::assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         static::assertEquals(3, $this->emulator->get('key1'));
@@ -621,7 +621,7 @@ class MemcachedEmulatorTest extends TestCase
     {
         static::assertTrue($this->emulator->set('key1', '3'));
 
-        // If the operation would decrease the value below 0, the new value will be 0.
+        // If the operation decrease the value below 0, the new value will be 0.
         static::assertEquals(4, $this->emulator->incrementByKey(static::SERVER_KEY, 'key1', 1, 2));
         static::assertEquals(MemcachedEmulator::RES_SUCCESS, $this->emulator->getResultCode());
         static::assertEquals(4, $this->emulator->get('key1'));

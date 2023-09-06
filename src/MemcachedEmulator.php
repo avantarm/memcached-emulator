@@ -11,6 +11,7 @@ namespace Avantarm\MemcachedEmulator;
 
 /**
  * Memcached emulator class, Memcached 3.0.4 compatible.
+ * @noinspection PhpUnused
  */
 class MemcachedEmulator
 {
